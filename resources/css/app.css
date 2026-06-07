@@ -1,0 +1,120 @@
+@import 'tailwindcss';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --font-sans:
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+}
+
+/* Rich text output styles for the About (and future) pages */
+.about-content {
+    font-size: 1.0625rem;  /* 17px — comfortabel leesformaat */
+    line-height: 1.85;
+    color: #374151;
+}
+.about-content h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 2rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.25;
+}
+.about-content h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+.about-content h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-top: 1.5rem;
+    margin-bottom: 0.4rem;
+}
+.about-content h1:first-child,
+.about-content h2:first-child,
+.about-content h3:first-child {
+    margin-top: 0;
+}
+.about-content p {
+    margin-bottom: 1.25rem;
+}
+.about-content p:last-child {
+    margin-bottom: 0;
+}
+.about-content ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1.25rem;
+}
+.about-content ul li {
+    padding-left: 1.5rem;
+    position: relative;
+    margin-bottom: 0.4rem;
+}
+.about-content ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: #f97316;
+    font-weight: 700;
+}
+.about-content ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+.about-content ol li {
+    margin-bottom: 0.4rem;
+    padding-left: 0.25rem;
+}
+.about-content blockquote {
+    border-left: 3px solid #f97316;
+    background: #fff7ed;
+    padding: 1rem 1.25rem;
+    border-radius: 0 0.75rem 0.75rem 0;
+    color: #92400e;
+    font-style: italic;
+    margin: 1.5rem 0;
+}
+.about-content hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 2rem 0;
+}
+.about-content strong {
+    font-weight: 600;
+    color: #111827;
+}
+.about-content em {
+    font-style: italic;
+    color: #4b5563;
+}
+.about-content u {
+    text-decoration: underline;
+    text-decoration-color: #f97316;
+    text-underline-offset: 3px;
+}
+.about-content s {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+.about-content a {
+    color: #f97316;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.about-content a:hover {
+    color: #ea580c;
+}
+.about-content [style*='text-align: center'] { text-align: center; }
+.about-content [style*='text-align: right'] { text-align: right; }
+
