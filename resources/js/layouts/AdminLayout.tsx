@@ -9,7 +9,9 @@ interface Props {
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: '📊' },
     { href: '/admin/scooters', label: 'Scooters', icon: '🛵' },
+    { href: '/admin/blog', label: 'Blog', icon: '📰' },
     { href: '/admin/paginas/over-ons', label: "Pagina's", icon: '📝' },
+    { href: '/profiel', label: 'Profiel', icon: '👤' },
 ];
 
 export default function AdminLayout({ children, title }: Props) {

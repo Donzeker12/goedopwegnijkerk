@@ -13,15 +13,23 @@ interface Scooter {
 
 interface Props {
     featured: Scooter[];
+    latestBlogs: {
+        id: number;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        published_at: string | null;
+        cover: string | null;
+    }[];
 }
 
-export default function Home({ featured }: Props) {
+export default function Home({ featured, latestBlogs }: Props) {
     return (
         <AppLayout>
             <Head title="Home" />
 
             {/* Hero */}
-            <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-orange-900 text-white">
+            <section className="bg-linear-to-br from-gray-900 via-gray-800 to-orange-900 text-white">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
                     <div className="text-6xl mb-6">🛵</div>
                     <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -118,6 +126,52 @@ export default function Home({ featured }: Props) {
                                                 Te koop
                                             </span>
                                         </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Latest blog posts */}
+            {latestBlogs.length > 0 && (
+                <section className="py-16 bg-white border-t border-gray-100">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between mb-10">
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">Laatste blogs</h2>
+                                <p className="text-gray-600 mt-1">Tips, updates en scooterverhalen</p>
+                            </div>
+                            <Link href="/blog" className="text-orange-500 hover:text-orange-600 font-medium text-sm">
+                                Alle blogs →
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {latestBlogs.map((post) => (
+                                <Link
+                                    key={post.id}
+                                    href={`/blog/${post.slug}`}
+                                    className="group rounded-2xl border border-gray-100 bg-gray-50 overflow-hidden hover:shadow-md transition-shadow"
+                                >
+                                    <div className="aspect-video bg-gray-200 overflow-hidden">
+                                        {post.cover ? (
+                                            <img
+                                                src={post.cover}
+                                                alt={post.title}
+                                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="h-full w-full flex items-center justify-center text-4xl text-gray-400">📰</div>
+                                        )}
+                                    </div>
+                                    <div className="p-4">
+                                        <div className="text-xs text-gray-500 mb-2">{post.published_at ?? ''}</div>
+                                        <h3 className="font-bold text-gray-900 leading-snug line-clamp-2">{post.title}</h3>
+                                        <p className="text-sm text-gray-600 mt-2 line-clamp-3">
+                                            {post.excerpt ?? 'Lees dit artikel op onze blog.'}
+                                        </p>
                                     </div>
                                 </Link>
                             ))}

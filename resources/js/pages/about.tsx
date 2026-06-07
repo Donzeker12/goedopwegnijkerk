@@ -56,9 +56,9 @@ export default function About({ content, title }: Props) {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         {[
-                            { step: '01', title: 'Inkoop', desc: 'Ik koop scooters op die technische aandacht nodig hebben, vaak voor een vriendelijke prijs.', icon: '🔍' },
-                            { step: '02', title: 'Reparatie', desc: 'Alles wat kapot is, wordt gerepareerd of vervangen. Van gaskabels tot complete motorrenovaties.', icon: '🔧' },
-                            { step: '03', title: 'Verkoop', desc: 'De scooter staat te koop voor een eerlijke prijs. Transparant, inclusief informatie over wat er gedaan is.', icon: '✅' },
+                            { step: '01', title: 'Inspectie & Selectie', desc: 'Elke scooter die onze werkplaats binnenkomt, wordt eerst aan een strenge inspectie onderworpen. We selecteren alleen scooters met een gezonde basis, zodat we kwaliteit kunnen garanderen.', icon: '🔍' },
+                            { step: '02', title: 'Reconstructie & Styling', desc: 'Vervolgens gaan we grondig te werk. Technisch krijgt het blok een volledige revisie (van kleppen tot transmissie) en optisch wordt de scooter door mijn vrouw volledig strak gemaakt en vakkundig nieuw gespoten. Zonder gebruikerssporen.', icon: '🔧' },
+                            { step: '03', title: 'Rijklaar voor de Verkoop', desc: 'De scooter staat pas te koop als hij 100% aan onze eisen voldoet. Transparant, eerlijk geprijsd en inclusief een helder overzicht van wat er allemaal aan vernieuwd is.', icon: '✅' },
                         ].map((item, i) => (
                             <div key={item.step} className="relative bg-white rounded-2xl p-7 shadow-sm border border-gray-100">
                                 <div className="absolute -top-3 left-6 bg-orange-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
