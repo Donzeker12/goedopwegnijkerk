@@ -46,6 +46,8 @@ export default function AdminLayout({ children, title }: Props) {
     const [isPushSubscribed, setIsPushSubscribed] = useState(false);
     const [pushBusy, setPushBusy] = useState(false);
 
+    const canInstall = useMemo(() => !isStandalone && installPromptEvent !== null, [isStandalone, installPromptEvent]);
+
     const isSecureContext = typeof window !== 'undefined' ? window.isSecureContext : false;
     const isIos = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(window.navigator.userAgent);
     const installUnavailable = !isStandalone && !canInstall;
@@ -54,8 +56,6 @@ export default function AdminLayout({ children, title }: Props) {
     const mobileTabs = navItems.filter((item) =>
         ['/admin/start', '/admin/scooters', '/admin/voorraad', '/admin/financien'].includes(item.href)
     );
-
-    const canInstall = useMemo(() => !isStandalone && installPromptEvent !== null, [isStandalone, installPromptEvent]);
     const shouldUsePollingFallback = !pushEnabled || !isPushSubscribed;
 
     useEffect(() => {
