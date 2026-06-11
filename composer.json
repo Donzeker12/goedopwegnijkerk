@@ -14,7 +14,8 @@
         "laravel/framework": ">=13.13,<13.15",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "minishlink/web-push": "*"
+        "minishlink/web-push": "*",
+        "symfony/http-foundation": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
