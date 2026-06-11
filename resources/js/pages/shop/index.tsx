@@ -1,4 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
 
 interface Scooter {
@@ -21,7 +22,15 @@ interface Props {
 export default function ShopIndex({ scooters }: Props) {
     return (
         <AppLayout>
-            <Head title="Scooters te koop" />
+            <SeoHead
+                title="Scooters te koop in Nijkerk"
+                description="Bekijk scooters te koop in Nijkerk. Tweedehands, rijklaar en eerlijk geprijsd met duidelijke informatie en persoonlijke service."
+                path="/scooters"
+                breadcrumbs={[
+                    { name: 'Home', url: '/' },
+                    { name: 'Scooters' },
+                ]}
+            />
 
             {/* Hero */}
             <section className="bg-gray-900 text-white py-16">
@@ -99,6 +108,30 @@ export default function ShopIndex({ scooters }: Props) {
                         ))}
                     </div>
                 )}
+            </section>
+
+            <section className="py-12 bg-white border-t border-gray-100">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-gray-900">Scooters te koop met duidelijke historie</h2>
+                    <p className="mt-3 text-gray-600 leading-relaxed max-w-4xl">
+                        In ons aanbod vind je tweedehands scooters die technisch zijn nagekeken en rijklaar worden geleverd. Per scooter laten we zien wat recent is gedaan, welke specificaties relevant zijn en hoe je een proefrit kunt plannen. Zo kun je nuchter vergelijken en met vertrouwen kiezen.
+                    </p>
+
+                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <Link href="/faq" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
+                            Garantie en veelgestelde vragen
+                        </Link>
+                        <Link href="/over-ons" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
+                            Hoe wij scooters rijklaar maken
+                        </Link>
+                        <Link href="/blog" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
+                            Onderhoudstips en updates
+                        </Link>
+                        <Link href="/" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
+                            Terug naar homepage
+                        </Link>
+                    </div>
+                </div>
             </section>
         </AppLayout>
     );

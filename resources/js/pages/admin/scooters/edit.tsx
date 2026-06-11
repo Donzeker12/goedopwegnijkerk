@@ -17,11 +17,14 @@ interface Part {
     part_brand: string | null;
     specification: string | null;
     quantity: number;
+    minimum_stock: number;
+    procurement_status: 'nodig' | 'besteld' | 'binnen' | 'geplaatst';
     category: string | null;
     cost: number;
     total_cost: number;
     purchased_at: string | null;
     notes: string | null;
+    receipt_url: string | null;
 }
 
 interface Photo {
@@ -48,6 +51,8 @@ interface ScooterData {
     scooter_model_id: number;
     purchase_price: number;
     expected_sale_price: number | null;
+    actual_sale_price: number | null;
+    sold_at: string | null;
     description: string | null;
     year: number | null;
     mileage: number | null;
@@ -55,10 +60,25 @@ interface ScooterData {
     kenteken: string | null;
     status: string;
     ready_for_sale: boolean;
+    warranty_months: number | null;
+    delivery_service_included: boolean;
+    inspection_points: number | null;
+    review_score: number | null;
+    review_count: number | null;
     naam: string;
     onderdelen_kosten: number;
     totale_investering: number;
     netto_winst: number | null;
+    netto_winst_echt: number | null;
+    purchase_receipt_url: string | null;
+    pricing_hint: {
+        level: 'medium' | 'high';
+        title: string;
+        message: string;
+    } | null;
+    days_online: number | null;
+    recent_views: number;
+    recent_test_rides: number;
     parts: Part[];
     photos: Photo[];
 }
@@ -66,9 +86,21 @@ interface ScooterData {
 interface Props {
     scooter: ScooterData;
     brands: BrandItem[];
+    features?: {
+        loyalty_pass_admin_preview?: boolean;
+    };
+    product_templates: {
+        name: string;
+        part_brand: string | null;
+        specification: string | null;
+        category: string | null;
+        cost: number;
+    }[];
 }
 
-export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
+const supplierOptions = ['Kparts', 'Zandri', 'Scootershop'];
+
+export default function ScooterEdit({ scooter, brands: initialBrands, features, product_templates }: Props) {
     const { props } = usePage<{ flash?: { success?: string } }>();
     const flash = props.flash;
 
@@ -77,6 +109,9 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
         scooter_model_id: String(scooter.scooter_model_id),
         purchase_price: String(scooter.purchase_price),
         expected_sale_price: scooter.expected_sale_price ? String(scooter.expected_sale_price) : '',
+        actual_sale_price: scooter.actual_sale_price ? String(scooter.actual_sale_price) : '',
+        sold_at: scooter.sold_at ?? '',
+        purchase_receipt: null as File | null,
         description: scooter.description ?? '',
         year: scooter.year ? String(scooter.year) : '',
         mileage: scooter.mileage ? String(scooter.mileage) : '',
@@ -84,6 +119,11 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
         kenteken: scooter.kenteken ?? '',
         status: scooter.status,
         ready_for_sale: scooter.ready_for_sale,
+        warranty_months: scooter.warranty_months ? String(scooter.warranty_months) : '',
+        delivery_service_included: scooter.delivery_service_included,
+        inspection_points: scooter.inspection_points ? String(scooter.inspection_points) : '',
+        review_score: scooter.review_score ? String(scooter.review_score) : '',
+        review_count: scooter.review_count ? String(scooter.review_count) : '',
     });
 
     const [localBrands, setLocalBrands] = useState<BrandItem[]>(initialBrands);
@@ -98,11 +138,22 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
         part_brand: '',
         specification: '',
         quantity: '1',
+        minimum_stock: '0',
+        procurement_status: 'binnen' as 'nodig' | 'besteld' | 'binnen' | 'geplaatst',
         category: '',
         cost: '',
         purchased_at: '',
         notes: '',
+        receipt: null as File | null,
     });
+
+    const quickNeedForm = useForm({
+        name: '',
+        part_brand: '',
+        cost: '',
+    });
+    const quickNeedFormRef = useRef<HTMLFormElement>(null);
+    const quickNeedInputRef = useRef<HTMLInputElement>(null);
 
     const [photoFiles, setPhotoFiles] = useState<FileList | null>(null);
     const [photoUploading, setPhotoUploading] = useState(false);
@@ -118,6 +169,34 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
 
     const selectedBrand = localBrands.find((b) => String(b.id) === data.brand_id);
     const availableModels = selectedBrand?.scooter_models ?? [];
+    const [selectedTemplateKey, setSelectedTemplateKey] = useState('');
+    const selectedSupplierValue = supplierOptions.includes(partForm.data.part_brand) ? partForm.data.part_brand : partForm.data.part_brand ? '__custom__' : '';
+    const quickSupplierValue = supplierOptions.includes(quickNeedForm.data.part_brand) ? quickNeedForm.data.part_brand : quickNeedForm.data.part_brand ? '__custom__' : '';
+
+    function parseMoneyInput(value: string): number {
+        const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '');
+
+        return Number.parseFloat(normalized || '0') || 0;
+    }
+
+    function applyProductTemplate(rawKey: string) {
+        setSelectedTemplateKey(rawKey);
+        const idx = Number.parseInt(rawKey, 10);
+        if (Number.isNaN(idx)) return;
+
+        const tpl = product_templates[idx];
+        if (!tpl) return;
+
+        partForm.setData((prev) => ({
+            ...prev,
+            name: tpl.name,
+            part_brand: tpl.part_brand ?? '',
+            specification: tpl.specification ?? '',
+            category: tpl.category ?? prev.category,
+            cost: String(tpl.cost),
+            quantity: prev.quantity || '1',
+        }));
+    }
 
     function getCsrf(): string {
         return (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement)?.content ?? '';
@@ -224,18 +303,49 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
 
     function handleSave(e: FormEvent) {
         e.preventDefault();
-        put(`/admin/scooters/${scooter.id}`);
+        put(`/admin/scooters/${scooter.id}`, { forceFormData: true });
     }
 
     function handleAddPart(e: FormEvent) {
         e.preventDefault();
         partForm.post(`/admin/scooters/${scooter.id}/onderdelen`, {
+            forceFormData: true,
             onSuccess: () => partForm.reset(),
         });
     }
 
     function handleDeletePart(partId: number) {
         router.delete(`/admin/scooters/${scooter.id}/onderdelen/${partId}`);
+    }
+
+    function handleUpdatePartStatus(partId: number, status: 'nodig' | 'besteld' | 'binnen' | 'geplaatst') {
+        router.patch(`/admin/scooters/${scooter.id}/onderdelen/${partId}/status`, {
+            procurement_status: status,
+        });
+    }
+
+    function handleQuickNeedSubmit(e: FormEvent) {
+        e.preventDefault();
+        if (!quickNeedForm.data.name.trim()) return;
+
+        quickNeedForm.transform(() => ({
+            name: quickNeedForm.data.name,
+            part_brand: quickNeedForm.data.part_brand || null,
+            quantity: 1,
+            minimum_stock: 0,
+            procurement_status: 'nodig',
+            cost: parseMoneyInput(quickNeedForm.data.cost),
+        }));
+
+        quickNeedForm.post(`/admin/scooters/${scooter.id}/onderdelen`, {
+            forceFormData: true,
+            onSuccess: () => quickNeedForm.reset(),
+        });
+    }
+
+    function jumpToQuickNeed() {
+        quickNeedFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => quickNeedInputRef.current?.focus(), 250);
     }
 
     function handleUploadPhotos(e: FormEvent) {
@@ -264,7 +374,14 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
     }
 
     const totalInvestment = scooter.onderdelen_kosten + scooter.purchase_price;
-    const profit = scooter.expected_sale_price !== null ? scooter.expected_sale_price - totalInvestment : null;
+    const expectedProfit = scooter.expected_sale_price !== null ? scooter.expected_sale_price - totalInvestment : null;
+    const actualProfit = scooter.actual_sale_price !== null ? scooter.actual_sale_price - totalInvestment : null;
+    const neededParts = scooter.parts.filter((part) => part.procurement_status === 'nodig');
+    const orderedParts = scooter.parts.filter((part) => part.procurement_status === 'besteld');
+    const pendingParts = scooter.parts.filter((part) => !['binnen', 'geplaatst'].includes(part.procurement_status));
+    const neededTotal = neededParts.reduce((sum, part) => sum + part.total_cost, 0);
+    const orderedTotal = orderedParts.reduce((sum, part) => sum + part.total_cost, 0);
+    const pendingTotal = pendingParts.reduce((sum, part) => sum + part.total_cost, 0);
 
     return (
         <AdminLayout title={`Bewerken: ${scooter.naam}`}>
@@ -283,9 +400,9 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                     { label: 'Onderdeelkosten', value: `€${scooter.onderdelen_kosten.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`, color: 'text-gray-900' },
                     { label: 'Totale investering', value: `€${totalInvestment.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`, color: 'text-gray-900 font-bold' },
                     {
-                        label: 'Netto winst',
-                        value: profit !== null ? `${profit >= 0 ? '+' : ''}€${profit.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}` : '—',
-                        color: profit === null ? 'text-gray-400' : profit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold',
+                        label: 'Verwachte winst',
+                        value: expectedProfit !== null ? `${expectedProfit >= 0 ? '+' : ''}€${expectedProfit.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}` : '—',
+                        color: expectedProfit === null ? 'text-gray-400' : expectedProfit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold',
                     },
                 ].map((item) => (
                     <div key={item.label} className="bg-white rounded-2xl shadow-sm p-4">
@@ -295,14 +412,52 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {scooter.pricing_hint && (
+                <div className={`mb-6 rounded-2xl border p-4 ${scooter.pricing_hint.level === 'high' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}>
+                    <div className="flex items-start justify-between gap-3">
+                        <div>
+                            <h2 className={`font-bold ${scooter.pricing_hint.level === 'high' ? 'text-rose-900' : 'text-amber-900'}`}>{scooter.pricing_hint.title}</h2>
+                            <p className={`text-sm mt-1 ${scooter.pricing_hint.level === 'high' ? 'text-rose-700' : 'text-amber-700'}`}>{scooter.pricing_hint.message}</p>
+                        </div>
+                        <div className="text-right text-xs text-gray-600 shrink-0">
+                            <div>{scooter.days_online ?? 0} dagen online</div>
+                            <div>{scooter.recent_views} views (14d)</div>
+                            <div>{scooter.recent_test_rides} proefritten (14d)</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {scooter.status === 'verkocht' && scooter.actual_sale_price !== null && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                    <h2 className="font-bold text-blue-900 mb-2">Verkocht: directe samenvatting</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <div className="text-blue-700">Totale investering</div>
+                            <div className="font-bold text-blue-900">€{totalInvestment.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                        </div>
+                        <div>
+                            <div className="text-blue-700">Echte verkoopprijs</div>
+                            <div className="font-bold text-blue-900">€{scooter.actual_sale_price.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                        </div>
+                        <div>
+                            <div className="text-blue-700">Echte netto winst</div>
+                            <div className={`font-bold ${actualProfit !== null && actualProfit >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                                {actualProfit !== null ? `${actualProfit >= 0 ? '+' : ''}€${actualProfit.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}` : '—'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pb-24 md:pb-0">
                 {/* Left: Scooter form */}
                 <div className="xl:col-span-2 space-y-6">
                     <form onSubmit={handleSave} className="space-y-6">
                         {/* Merk & Model */}
                         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                             <h2 className="font-bold text-gray-900">Merk & Model</h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Merk *</label>
                                     <select
@@ -403,7 +558,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                         {/* Financieel */}
                         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                             <h2 className="font-bold text-gray-900">Financieel</h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Inkoopprijs (€) *</label>
                                     <input
@@ -428,13 +583,51 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                     />
                                     {errors.expected_sale_price && <p className="mt-1 text-red-500 text-xs">{errors.expected_sale_price}</p>}
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Echte verkoopprijs (€)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={data.actual_sale_price}
+                                        onChange={(e) => setData('actual_sale_price', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                    {errors.actual_sale_price && <p className="mt-1 text-red-500 text-xs">{errors.actual_sale_price}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Verkocht op</label>
+                                    <input
+                                        type="date"
+                                        value={data.sold_at}
+                                        onChange={(e) => setData('sold_at', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                    {errors.sold_at && <p className="mt-1 text-red-500 text-xs">{errors.sold_at}</p>}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Inkoopbon / factuur</label>
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                                    onChange={(e) => setData('purchase_receipt', e.target.files?.[0] ?? null)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm"
+                                />
+                                {scooter.purchase_receipt_url && (
+                                    <a href={scooter.purchase_receipt_url} target="_blank" rel="noreferrer" className="text-xs text-orange-600 hover:underline mt-1 inline-block">
+                                        Huidige bon bekijken
+                                    </a>
+                                )}
+                                {errors.purchase_receipt && <p className="mt-1 text-red-500 text-xs">{errors.purchase_receipt}</p>}
                             </div>
                         </div>
 
                         {/* Details */}
                         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                             <h2 className="font-bold text-gray-900">Details</h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Bouwjaar</label>
                                     <input type="number" min="1990" max="2030" value={data.year} onChange={(e) => setData('year', e.target.value)} className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="2020" />
@@ -478,6 +671,82 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                             </label>
                         </div>
 
+                        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+                            <h2 className="font-bold text-gray-900">Vertrouwen op shop</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Garantie (maanden)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="24"
+                                        value={data.warranty_months}
+                                        onChange={(e) => setData('warranty_months', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                    {errors.warranty_months && <p className="mt-1 text-red-500 text-xs">{errors.warranty_months}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Keuringspunten</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={data.inspection_points}
+                                        onChange={(e) => setData('inspection_points', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                    {errors.inspection_points && <p className="mt-1 text-red-500 text-xs">{errors.inspection_points}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Reviewscore (0-5)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        max="5"
+                                        value={data.review_score}
+                                        onChange={(e) => setData('review_score', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                    {errors.review_score && <p className="mt-1 text-red-500 text-xs">{errors.review_score}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Aantal reviews</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="9999"
+                                        value={data.review_count}
+                                        onChange={(e) => setData('review_count', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                    {errors.review_count && <p className="mt-1 text-red-500 text-xs">{errors.review_count}</p>}
+                                </div>
+                            </div>
+
+                            <label className="flex items-center gap-3 cursor-pointer rounded-xl border border-gray-200 px-3 py-2">
+                                <input
+                                    type="checkbox"
+                                    checked={data.delivery_service_included}
+                                    onChange={(e) => setData('delivery_service_included', e.target.checked)}
+                                    className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                                />
+                                <div>
+                                    <div className="text-sm font-medium text-gray-900">Afleverbeurt inbegrepen</div>
+                                    <div className="text-xs text-gray-500">Wordt zichtbaar als trust-element op de productpagina.</div>
+                                </div>
+                            </label>
+
+                            {features?.loyalty_pass_admin_preview && (
+                                <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                                    <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">Testfase - nog niet live</div>
+                                    <h3 className="text-sm font-bold text-blue-900 mt-1">Goed Op Weg Vertrouwenspas</h3>
+                                    <p className="text-xs text-blue-800 mt-1">Concept voordelen: gratis check na 30 dagen en mogelijk €25 service-tegoed bij doorverwijzing.</p>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="flex gap-3">
                             <button type="submit" disabled={processing} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
                                 {processing ? 'Opslaan...' : 'Wijzigingen opslaan'}
@@ -502,6 +771,85 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                             )}
                         </div>
 
+                        <form ref={quickNeedFormRef} onSubmit={handleQuickNeedSubmit} className="mb-4 bg-orange-50 border border-orange-200 rounded-xl p-3">
+                            <div className="text-xs font-semibold text-orange-700 mb-2">Snel toevoegen op mobiel: nodig onderdeel</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                <input
+                                    ref={quickNeedInputRef}
+                                    type="text"
+                                    value={quickNeedForm.data.name}
+                                    onChange={(e) => quickNeedForm.setData('name', e.target.value)}
+                                    placeholder="Bijv. Achterband 10 inch"
+                                    className="sm:col-span-2 border border-orange-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                <div>
+                                    <select
+                                        value={quickSupplierValue}
+                                        onChange={(e) => {
+                                            if (e.target.value === '__custom__') {
+                                                quickNeedForm.setData('part_brand', '');
+                                                return;
+                                            }
+
+                                            quickNeedForm.setData('part_brand', e.target.value);
+                                        }}
+                                        className="w-full border border-orange-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                                    >
+                                        <option value="">Winkel</option>
+                                        {supplierOptions.map((supplier) => (
+                                            <option key={supplier} value={supplier}>{supplier}</option>
+                                        ))}
+                                        <option value="__custom__">Anders...</option>
+                                    </select>
+                                    {quickSupplierValue === '__custom__' && (
+                                        <input
+                                            type="text"
+                                            value={quickNeedForm.data.part_brand}
+                                            onChange={(e) => quickNeedForm.setData('part_brand', e.target.value)}
+                                            className="mt-2 w-full border border-orange-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Typ winkelnaam"
+                                        />
+                                    )}
+                                </div>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={quickNeedForm.data.cost}
+                                    onChange={(e) => quickNeedForm.setData('cost', e.target.value)}
+                                    placeholder="Prijs €"
+                                    className="border border-orange-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={quickNeedForm.processing || !quickNeedForm.data.name.trim() || parseMoneyInput(quickNeedForm.data.cost) <= 0}
+                                    className="sm:col-span-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                >
+                                    {quickNeedForm.processing ? 'Opslaan...' : '+ Nodig'}
+                                </button>
+                            </div>
+                        </form>
+
+                        {pendingParts.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                                    <div className="text-xs text-amber-700">Nog nodig</div>
+                                    <div className="text-sm font-bold text-amber-800">{neededParts.length} items</div>
+                                    <div className="text-sm text-amber-700">€{neededTotal.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                                </div>
+                                <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2">
+                                    <div className="text-xs text-blue-700">Besteld</div>
+                                    <div className="text-sm font-bold text-blue-800">{orderedParts.length} items</div>
+                                    <div className="text-sm text-blue-700">€{orderedTotal.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                                </div>
+                                <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+                                    <div className="text-xs text-red-700">Totaal nog te inkopen</div>
+                                    <div className="text-sm font-bold text-red-800">{pendingParts.length} items</div>
+                                    <div className="text-sm text-red-700">€{pendingTotal.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                                </div>
+                            </div>
+                        )}
+
                         {scooter.parts.length > 0 ? (
                             <div className="mb-5">
                                 {/* Group by category */}
@@ -521,6 +869,17 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 flex-wrap">
                                                                 <span className="text-sm font-semibold text-gray-900">{part.name}</span>
+                                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                                                    part.procurement_status === 'nodig'
+                                                                        ? 'bg-amber-100 text-amber-700'
+                                                                        : part.procurement_status === 'besteld'
+                                                                            ? 'bg-blue-100 text-blue-700'
+                                                                            : part.procurement_status === 'geplaatst'
+                                                                                ? 'bg-violet-100 text-violet-700'
+                                                                                : 'bg-emerald-100 text-emerald-700'
+                                                                }`}>
+                                                                    {part.procurement_status === 'nodig' ? 'Nodig' : part.procurement_status === 'besteld' ? 'Besteld' : part.procurement_status === 'geplaatst' ? 'Geplaatst' : 'Binnen'}
+                                                                </span>
                                                                 {part.part_brand && (
                                                                     <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">{part.part_brand}</span>
                                                                 )}
@@ -534,9 +893,46 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                                             <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                                                                 {part.purchased_at && <span>📅 {part.purchased_at}</span>}
                                                                 {part.notes && <span className="truncate">{part.notes}</span>}
+                                                                {part.receipt_url && (
+                                                                    <a href={part.receipt_url} target="_blank" rel="noreferrer" className="text-orange-600 hover:underline">Bon</a>
+                                                                )}
+                                                                {part.minimum_stock > 0 && (
+                                                                    <span className={part.quantity <= part.minimum_stock ? 'text-amber-600 font-semibold' : ''}>
+                                                                        Voorraad {part.quantity}/{part.minimum_stock}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                {part.procurement_status === 'nodig' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleUpdatePartStatus(part.id, 'besteld')}
+                                                                        className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 px-2 py-1 rounded-md"
+                                                                    >
+                                                                        Markeer als besteld
+                                                                    </button>
+                                                                )}
+                                                                {part.procurement_status !== 'binnen' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleUpdatePartStatus(part.id, 'binnen')}
+                                                                        className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded-md"
+                                                                    >
+                                                                        Markeer als binnen
+                                                                    </button>
+                                                                )}
+                                                                {part.procurement_status === 'binnen' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleUpdatePartStatus(part.id, 'geplaatst')}
+                                                                        className="text-xs bg-violet-50 text-violet-700 hover:bg-violet-100 px-2 py-1 rounded-md"
+                                                                    >
+                                                                        Markeer als geplaatst
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        <div className="text-right flex-shrink-0">
+                                                        <div className="text-right shrink-0">
                                                             <div className="font-bold text-gray-900 text-sm">
                                                                 €{part.total_cost.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
                                                             </div>
@@ -548,7 +944,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                                         </div>
                                                         <button
                                                             onClick={() => handleDeletePart(part.id)}
-                                                            className="text-gray-300 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 flex-shrink-0"
+                                                            className="text-gray-300 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 shrink-0"
                                                             title="Verwijderen"
                                                         >
                                                             ✕
@@ -578,6 +974,27 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                         <form onSubmit={handleAddPart} className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-100">
                             <h3 className="text-sm font-bold text-gray-700">➕ Onderdeel toevoegen</h3>
 
+                            {product_templates.length > 0 && (
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Productenlijst</label>
+                                    <select
+                                        value={selectedTemplateKey}
+                                        onChange={(e) => applyProductTemplate(e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                                    >
+                                        <option value="">Kies bestaand product om velden te vullen...</option>
+                                        {product_templates.map((tpl, idx) => (
+                                            <option key={`${tpl.name}-${tpl.part_brand ?? ''}-${tpl.specification ?? ''}-${idx}`} value={idx}>
+                                                {tpl.name}
+                                                {tpl.part_brand ? ` - ${tpl.part_brand}` : ''}
+                                                {tpl.specification ? ` (${tpl.specification})` : ''}
+                                                {` - €${tpl.cost.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
                             {/* Row 1: naam + merk + specificatie */}
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="col-span-3 sm:col-span-1">
@@ -592,14 +1009,34 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                     {partForm.errors.name && <p className="mt-1 text-red-500 text-xs">{partForm.errors.name}</p>}
                                 </div>
                                 <div className="col-span-3 sm:col-span-1">
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">Merk onderdeel</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Bijv. Cito Plus, Malossi"
-                                        value={partForm.data.part_brand}
-                                        onChange={(e) => partForm.setData('part_brand', e.target.value)}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    />
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Winkel / Leverancier</label>
+                                    <select
+                                        value={selectedSupplierValue}
+                                        onChange={(e) => {
+                                            if (e.target.value === '__custom__') {
+                                                partForm.setData('part_brand', '');
+                                                return;
+                                            }
+
+                                            partForm.setData('part_brand', e.target.value);
+                                        }}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                                    >
+                                        <option value="">— Kies winkel —</option>
+                                        {supplierOptions.map((supplier) => (
+                                            <option key={supplier} value={supplier}>{supplier}</option>
+                                        ))}
+                                        <option value="__custom__">Anders...</option>
+                                    </select>
+                                    {selectedSupplierValue === '__custom__' && (
+                                        <input
+                                            type="text"
+                                            placeholder="Typ winkelnaam"
+                                            value={partForm.data.part_brand}
+                                            onChange={(e) => partForm.setData('part_brand', e.target.value)}
+                                            className="mt-2 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        />
+                                    )}
                                 </div>
                                 <div className="col-span-3 sm:col-span-1">
                                     <label className="block text-xs font-medium text-gray-500 mb-1">Specificatie / Maat</label>
@@ -647,6 +1084,30 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                     />
                                 </div>
                                 <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Minimumvoorraad</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="999"
+                                        value={partForm.data.minimum_stock}
+                                        onChange={(e) => partForm.setData('minimum_stock', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                                    <select
+                                        value={partForm.data.procurement_status}
+                                        onChange={(e) => partForm.setData('procurement_status', e.target.value as 'nodig' | 'besteld' | 'binnen' | 'geplaatst')}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                                    >
+                                        <option value="nodig">Nodig</option>
+                                        <option value="besteld">Besteld</option>
+                                        <option value="binnen">Binnen</option>
+                                        <option value="geplaatst">Geplaatst</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label className="block text-xs font-medium text-gray-500 mb-1">Prijs per stuk (€) *</label>
                                     <input
                                         type="number"
@@ -673,8 +1134,14 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                 </div>
                             )}
 
+                            {partForm.data.cost && Number(partForm.data.cost) > 0 && (
+                                <div className="text-xs text-gray-500">
+                                    Deze prijs wordt direct meegenomen in totale investering en winstberekening.
+                                </div>
+                            )}
+
                             {/* Row 3: datum + notities */}
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-500 mb-1">Aankoopdatum</label>
                                     <input
@@ -696,6 +1163,16 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                 </div>
                             </div>
 
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Bon / Factuur</label>
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                                    onChange={(e) => partForm.setData('receipt', e.target.files?.[0] ?? null)}
+                                    className="w-full text-sm"
+                                />
+                            </div>
+
                             <button
                                 type="submit"
                                 disabled={partForm.processing}
@@ -713,7 +1190,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                         <h2 className="font-bold text-gray-900 mb-4">Foto's</h2>
 
                         {scooter.photos.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-2 mb-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                                 {scooter.photos.map((photo) => (
                                     <div key={photo.id} className={`relative rounded-xl overflow-hidden border-2 ${photo.is_primary ? 'border-orange-500' : 'border-transparent'}`}>
                                         <img src={photo.url} alt="" className="w-full aspect-square object-cover" />
@@ -857,7 +1334,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                                 )}
 
                                 {googleSearching && (
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {[...Array(6)].map((_, i) => (
                                             <div key={i} className="aspect-video bg-gray-100 rounded-xl animate-pulse" />
                                         ))}
@@ -866,7 +1343,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
 
                                 {googleImages.length > 0 && (
                                     <>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             {googleImages.map((img) => (
                                                 <div key={img.url} className="relative group rounded-xl overflow-hidden border border-gray-100">
                                                     <img
@@ -901,6 +1378,14 @@ export default function ScooterEdit({ scooter, brands: initialBrands }: Props) {
                     </div>
                 </div>
             </div>
+
+            <button
+                type="button"
+                onClick={jumpToQuickNeed}
+                className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-70 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
+            >
+                + Nodig onderdeel
+            </button>
         </AdminLayout>
     );
 }

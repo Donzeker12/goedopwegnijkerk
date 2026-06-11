@@ -10,6 +10,16 @@
         'Noto Color Emoji';
 }
 
+@layer utilities {
+    .pt-safe-top {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .pb-safe-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
 /* Rich text output styles for the About (and future) pages */
 .about-content {
     font-size: 1.0625rem;  /* 17px — comfortabel leesformaat */

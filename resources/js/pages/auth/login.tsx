@@ -19,7 +19,9 @@ export default function Login() {
 
             <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
-                    <div className="text-5xl mb-3">🛵</div>
+                    <div className="mb-3 flex justify-center">
+                        <img src="/brand-logo.png" alt="Goed Op Weg logo" className="h-16 w-16 rounded-lg object-contain bg-white" />
+                    </div>
                     <h1 className="text-white text-2xl font-bold">Goed Op Weg</h1>
                     <p className="text-gray-400 text-sm mt-1">Admin toegang</p>
                 </div>

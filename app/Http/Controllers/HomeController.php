@@ -46,6 +46,13 @@ class HomeController extends Controller
         return Inertia::render('home', [
             'featured' => $featured,
             'latestBlogs' => $latestBlogs,
+            'cityLandingPages' => collect(config('seo.city_pages', []))
+                ->map(fn (array $city, string $slug) => [
+                    'slug' => $slug,
+                    'name' => $city['name'],
+                ])
+                ->values(),
+            'business' => config('seo.business'),
         ]);
     }
 }

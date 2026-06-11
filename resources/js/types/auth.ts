@@ -2,6 +2,8 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    is_admin?: boolean;
+    admin_role?: 'operations' | 'finance' | 'both';
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

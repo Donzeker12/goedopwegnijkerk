@@ -1,4 +1,5 @@
-import { Head } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '../components/SeoHead';
 import AppLayout from '../layouts/AppLayout';
 
 interface Props {
@@ -11,10 +12,18 @@ export default function About({ content, title }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Over Ons" />
+            <SeoHead
+                title="Over ons"
+                description="Lees hoe Goed Op Weg Nijkerk werkt: eerlijk advies, nuchtere aanpak en zorgvuldig rijklaar gemaakte tweedehands scooters."
+                path="/over-ons"
+                breadcrumbs={[
+                    { name: 'Home', url: '/' },
+                    { name: 'Over ons' },
+                ]}
+            />
 
             {/* Hero */}
-            <section className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-20">
+            <section className="bg-linear-to-br from-gray-900 to-gray-800 text-white py-20">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="text-5xl mb-4">👋</div>
                     <h1 className="text-4xl font-bold mb-4">{title}</h1>
@@ -27,7 +36,7 @@ export default function About({ content, title }: Props) {
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Avatar row */}
                     <div className="flex items-center gap-5 mb-10">
-                        <div className="w-20 h-20 flex-shrink-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-4xl shadow-lg">
+                        <div className="w-20 h-20 shrink-0 bg-linear-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-4xl shadow-lg">
                             🛵
                         </div>
                         <div>
@@ -48,29 +57,44 @@ export default function About({ content, title }: Props) {
             </section>
 
             {/* Values */}
-            <section className="py-16 bg-gray-50 border-t border-gray-100">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <div className="text-xs font-semibold text-orange-500 uppercase tracking-widest mb-2">Werkwijze</div>
-                        <h2 className="text-3xl font-bold text-gray-900">Zo ga ik te werk</h2>
+            <section className="py-18 border-t border-gray-200 bg-linear-to-b from-slate-50 via-white to-slate-50">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-10">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-1 text-[11px] font-bold text-orange-700 uppercase tracking-[0.16em]">Werkwijze</div>
+                        <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mt-4">Zo ga ik te werk</h2>
+                        <p className="text-slate-600 mt-3 max-w-2xl mx-auto">Geen snelle handel, maar een vast proces. Zo weet je precies wat je krijgt voordat je de weg op gaat.</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         {[
-                            { step: '01', title: 'Inspectie & Selectie', desc: 'Elke scooter die onze werkplaats binnenkomt, wordt eerst aan een strenge inspectie onderworpen. We selecteren alleen scooters met een gezonde basis, zodat we kwaliteit kunnen garanderen.', icon: '🔍' },
-                            { step: '02', title: 'Reconstructie & Styling', desc: 'Vervolgens gaan we grondig te werk. Technisch krijgt het blok een volledige revisie (van kleppen tot transmissie) en optisch wordt de scooter door mijn vrouw volledig strak gemaakt en vakkundig nieuw gespoten. Zonder gebruikerssporen.', icon: '🔧' },
-                            { step: '03', title: 'Rijklaar voor de Verkoop', desc: 'De scooter staat pas te koop als hij 100% aan onze eisen voldoet. Transparant, eerlijk geprijsd en inclusief een helder overzicht van wat er allemaal aan vernieuwd is.', icon: '✅' },
+                            { step: '01', title: 'Inspectie & Selectie', desc: 'Alleen scooters met een gezonde technische basis komen door de intake.', icon: 'Inspectie' },
+                            { step: '02', title: 'Reconstructie & Styling', desc: 'Blok en aandrijving worden gereviseerd, kappen strak gemaakt en opnieuw gespoten.', icon: 'Revisie' },
+                            { step: '03', title: 'Rijklaar voor verkoop', desc: 'Pas online na eindcontrole, duidelijke prijs en volledig overzicht van het werk.', icon: 'Rijklaar' },
                         ].map((item, i) => (
-                            <div key={item.step} className="relative bg-white rounded-2xl p-7 shadow-sm border border-gray-100">
-                                <div className="absolute -top-3 left-6 bg-orange-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
-                                    {item.step}
+                            <article
+                                key={item.step}
+                                className="group relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/70"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-orange-500 px-2 text-[11px] font-black text-white tracking-[0.08em]">
+                                        {item.step}
+                                    </div>
+                                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                                        {item.icon}
+                                    </div>
                                 </div>
-                                <div className="text-3xl mb-4 mt-2">{item.icon}</div>
-                                <h3 className="font-bold text-gray-900 text-lg mb-2">{item.title}</h3>
-                                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+
+                                <h3 className="mt-5 text-2xl font-black leading-tight text-slate-900">{item.title}</h3>
+                                <p className="mt-3 text-base leading-relaxed text-slate-600">{item.desc}</p>
+
+                                <div className="mt-5 h-1.5 w-18 rounded-full bg-linear-to-r from-orange-500 to-orange-300 transition-all duration-300 group-hover:w-26" />
+
                                 {i < 2 && (
-                                    <div className="hidden sm:block absolute top-1/2 -right-3 -translate-y-1/2 text-gray-200 text-xl z-10">→</div>
+                                    <div className="hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 text-xs">
+                                        ›
+                                    </div>
                                 )}
-                            </div>
+                            </article>
                         ))}
                     </div>
                 </div>
@@ -91,12 +115,12 @@ export default function About({ content, title }: Props) {
                         >
                             📧 Stuur een mail
                         </a>
-                        <a
-                            href="tel:+31600000000"
+                        <Link
+                            href="/chat?bron=over-ons"
                             className="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-3 rounded-xl transition-colors border border-white/20"
                         >
-                            📞 Bel mij
-                        </a>
+                            💬 Start chat
+                        </Link>
                     </div>
                 </div>
             </section>

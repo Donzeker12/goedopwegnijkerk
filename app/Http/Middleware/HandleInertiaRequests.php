@@ -41,6 +41,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'push' => [
+                'enabled' => (bool) config('push.enabled'),
+                'vapid_public_key' => (string) config('push.vapid.public_key', ''),
+            ],
         ];
     }
 }

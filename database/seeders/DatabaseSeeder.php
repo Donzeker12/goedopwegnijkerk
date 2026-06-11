@@ -18,8 +18,24 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Admin',
                 'password' => Hash::make('admin123'),
+                'is_admin' => true,
+                'admin_role' => 'both',
             ]
         );
+
+        $opsUser = User::firstOrCreate(
+            ['email' => 'donzeker1@hotmail.com'],
+            [
+                'name' => 'Bas',
+                'password' => Hash::make('Welkom123!'),
+                'is_admin' => true,
+            ]
+        );
+
+        $opsUser->update([
+            'is_admin' => true,
+            'admin_role' => 'operations',
+        ]);
 
         // Brands and models
         $brandsData = [

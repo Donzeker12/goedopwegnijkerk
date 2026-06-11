@@ -1,4 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
 
 interface BlogPhoto {
@@ -17,17 +18,63 @@ interface BlogPost {
     photos: BlogPhoto[];
 }
 
-interface Props {
-    post: BlogPost;
+interface RelatedScooter {
+    id: number;
+    naam: string;
+    prijs: number;
+    foto: string | null;
+    year: number | null;
+    mileage: number | null;
 }
 
-export default function BlogShow({ post }: Props) {
+interface Props {
+    post: BlogPost;
+    related_scooters: RelatedScooter[];
+}
+
+export default function BlogShow({ post, related_scooters }: Props) {
     const cover = post.photos.find((photo) => photo.is_cover) ?? post.photos[0];
     const gallery = post.photos.filter((photo) => !cover || photo.id !== cover.id);
 
+    const articleSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.excerpt,
+        image: cover?.url ? absoluteUrl(cover.url) : undefined,
+        datePublished: post.published_at,
+        dateModified: post.published_at,
+        author: {
+            '@type': 'Organization',
+            name: 'Goed Op Weg Nijkerk',
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: 'Goed Op Weg Nijkerk',
+            logo: { '@type': 'ImageObject', url: absoluteUrl('/apple-touch-icon.png') },
+        },
+    };
+
+    function absoluteUrl(p: string): string {
+        if (p.startsWith('http')) return p;
+        return (import.meta.env.VITE_APP_URL as string || window.location.origin) + (p.startsWith('/') ? p : '/' + p);
+    }
+
     return (
         <AppLayout>
-            <Head title={post.title} />
+            <SeoHead
+                title={post.title}
+                description={post.excerpt ?? 'Lees dit artikel op de blog van Goed Op Weg Nijkerk.'}
+                path={`/blog/${post.slug}`}
+                type="article"
+                image={cover?.url}
+                breadcrumbs={[
+                    { name: 'Home', url: '/' },
+                    { name: 'Blog', url: '/blog' },
+                    { name: post.title },
+                ]}
+                jsonLd={articleSchema}
+            />
 
             <article className="bg-gray-50">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -61,8 +108,55 @@ export default function BlogShow({ post }: Props) {
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {gallery.map((photo) => (
                                     <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="rounded-xl overflow-hidden bg-gray-100">
-                                        <img src={photo.url} alt="Blog foto" className="w-full h-40 object-cover hover:scale-105 transition-transform" />
+                                        <img src={photo.url} alt="Blog foto" className="w-full h-40 object-cover hover:scale-105 transition-transform" loading="lazy" />
                                     </a>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    <section className="mt-12 pt-8 border-t border-gray-200 bg-white rounded-2xl p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Meer informatie</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <Link href="/scooters" className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors text-center">
+                                Bekijk scooters
+                            </Link>
+                            <Link href="/faq" className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors text-center">
+                                Veelgestelde vragen
+                            </Link>
+                            <Link href="/over-ons" className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors text-center">
+                                Onze werkwijze
+                            </Link>
+                        </div>
+                    </section>
+
+                    {related_scooters.length > 0 && (
+                        <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6">
+                            <h2 className="text-xl font-bold text-gray-900">Relevante scooters bij dit artikel</h2>
+                            <p className="text-sm text-gray-600 mt-1">Direct uit ons actuele aanbod in Nijkerk.</p>
+                            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {related_scooters.map((scooter) => (
+                                    <Link
+                                        key={scooter.id}
+                                        href={`/scooters/${scooter.id}`}
+                                        className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden hover:shadow-sm transition-shadow"
+                                    >
+                                        <div className="aspect-video bg-gray-200 overflow-hidden">
+                                            {scooter.foto ? (
+                                                <img src={scooter.foto} alt={scooter.naam} className="w-full h-full object-cover" loading="lazy" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">🛵</div>
+                                            )}
+                                        </div>
+                                        <div className="p-3.5">
+                                            <h3 className="font-semibold text-gray-900 text-sm leading-snug">{scooter.naam}</h3>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {scooter.year ? `${scooter.year}` : ''}
+                                                {scooter.mileage ? ` • ${scooter.mileage.toLocaleString('nl-NL')} km` : ''}
+                                            </p>
+                                            <div className="text-orange-600 font-bold mt-2">€{scooter.prijs.toLocaleString('nl-NL')}</div>
+                                        </div>
+                                    </Link>
                                 ))}
                             </div>
                         </section>

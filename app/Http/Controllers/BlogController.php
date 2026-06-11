@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
+use App\Models\Scooter;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Str;
 
 class BlogController extends Controller
 {
@@ -37,6 +39,34 @@ class BlogController extends Controller
 
         $post->load('photos');
 
+        $contentForMatch = Str::lower(strip_tags(trim(implode(' ', [
+            $post->title,
+            $post->excerpt,
+            $post->content,
+        ]))));
+
+        $candidateScooters = Scooter::with(['brand', 'scooterModel', 'photos'])
+            ->where('ready_for_sale', true)
+            ->where('status', 'te_koop')
+            ->latest()
+            ->take(12)
+            ->get();
+
+        $relatedScooters = $candidateScooters
+            ->filter(function (Scooter $scooter) use ($contentForMatch) {
+                $brand = Str::lower($scooter->brand->name ?? '');
+                $model = Str::lower($scooter->scooterModel->name ?? '');
+
+                return ($brand !== '' && Str::contains($contentForMatch, $brand))
+                    || ($model !== '' && Str::contains($contentForMatch, $model));
+            })
+            ->take(3)
+            ->values();
+
+        if ($relatedScooters->isEmpty()) {
+            $relatedScooters = $candidateScooters->take(3)->values();
+        }
+
         return Inertia::render('blog/show', [
             'post' => [
                 'id' => $post->id,
@@ -51,6 +81,14 @@ class BlogController extends Controller
                     'is_cover' => $photo->is_cover,
                 ]),
             ],
+            'related_scooters' => $relatedScooters->map(fn (Scooter $scooter) => [
+                'id' => $scooter->id,
+                'naam' => $scooter->display_name,
+                'prijs' => (float) $scooter->expected_sale_price,
+                'foto' => $scooter->primaryPhoto()?->url,
+                'year' => $scooter->year,
+                'mileage' => $scooter->mileage,
+            ]),
         ]);
     }
 }

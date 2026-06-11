@@ -1,4 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
 
 interface BlogItem {
@@ -17,7 +18,16 @@ interface Props {
 export default function BlogIndex({ posts }: Props) {
     return (
         <AppLayout>
-            <Head title="Blog" />
+            <SeoHead
+                title="Blog"
+                description="Blog met tips over onderhoud, aankoop en gebruik van tweedehands scooters in en rond Nijkerk."
+                path="/blog"
+                type="article"
+                breadcrumbs={[
+                    { name: 'Home', url: '/' },
+                    { name: 'Blog' },
+                ]}
+            />
 
             <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-orange-900 text-white py-20">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

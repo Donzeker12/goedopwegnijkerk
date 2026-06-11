@@ -13,6 +13,9 @@ class Scooter extends Model
         'scooter_model_id',
         'purchase_price',
         'expected_sale_price',
+        'actual_sale_price',
+        'sold_at',
+        'purchase_receipt_path',
         'description',
         'year',
         'mileage',
@@ -20,12 +23,21 @@ class Scooter extends Model
         'kenteken',
         'status',
         'ready_for_sale',
+        'warranty_months',
+        'delivery_service_included',
+        'inspection_points',
+        'review_score',
+        'review_count',
     ];
 
     protected $casts = [
         'purchase_price' => 'decimal:2',
         'expected_sale_price' => 'decimal:2',
+        'actual_sale_price' => 'decimal:2',
+        'sold_at' => 'date',
         'ready_for_sale' => 'boolean',
+        'delivery_service_included' => 'boolean',
+        'review_score' => 'decimal:1',
     ];
 
     public function brand(): BelongsTo
@@ -46,6 +58,26 @@ class Scooter extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(ScooterPhoto::class)->orderBy('sort_order');
+    }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(PurchaseEntry::class);
+    }
+
+    public function colorRequests(): HasMany
+    {
+        return $this->hasMany(ScooterColorRequest::class);
+    }
+
+    public function views(): HasMany
+    {
+        return $this->hasMany(ScooterView::class);
+    }
+
+    public function testRideRequests(): HasMany
+    {
+        return $this->hasMany(ScooterTestRideRequest::class);
     }
 
     public function primaryPhoto(): ?ScooterPhoto
@@ -72,6 +104,15 @@ class Scooter extends Model
         }
 
         return (float) $this->expected_sale_price - $this->total_investment;
+    }
+
+    public function getActualProfitAttribute(): ?float
+    {
+        if ($this->actual_sale_price === null) {
+            return null;
+        }
+
+        return (float) $this->actual_sale_price - $this->total_investment;
     }
 
     public function getDisplayNameAttribute(): string

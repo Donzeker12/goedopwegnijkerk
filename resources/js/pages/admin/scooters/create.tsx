@@ -27,6 +27,9 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
         scooter_model_id: '',
         purchase_price: '',
         expected_sale_price: '',
+        actual_sale_price: '',
+        sold_at: '',
+        purchase_receipt: null as File | null,
         description: '',
         year: '',
         mileage: '',
@@ -34,6 +37,11 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
         kenteken: '',
         status: 'in_reparatie',
         ready_for_sale: false,
+        warranty_months: '',
+        delivery_service_included: false,
+        inspection_points: '',
+        review_score: '',
+        review_count: '',
     });
 
     const [localBrands, setLocalBrands] = useState<BrandItem[]>(initialBrands);
@@ -48,7 +56,7 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
 
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        post('/admin/scooters');
+        post('/admin/scooters', { forceFormData: true });
     }
 
     async function addBrand() {
@@ -119,7 +127,7 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
                     <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                         <h2 className="font-bold text-gray-900 text-lg">Merk & Model</h2>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Merk *</label>
                                 <select
@@ -225,7 +233,7 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
                     {/* Financieel */}
                     <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                         <h2 className="font-bold text-gray-900 text-lg">Financieel</h2>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Inkoopprijs (€) *</label>
                                 <input
@@ -252,13 +260,47 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
                                 />
                                 {errors.expected_sale_price && <p className="mt-1 text-red-500 text-xs">{errors.expected_sale_price}</p>}
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Echte verkoopprijs (€)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={data.actual_sale_price}
+                                    onChange={(e) => setData('actual_sale_price', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder="(optioneel bij directe verkoop)"
+                                />
+                                {errors.actual_sale_price && <p className="mt-1 text-red-500 text-xs">{errors.actual_sale_price}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Verkocht op</label>
+                                <input
+                                    type="date"
+                                    value={data.sold_at}
+                                    onChange={(e) => setData('sold_at', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                {errors.sold_at && <p className="mt-1 text-red-500 text-xs">{errors.sold_at}</p>}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Inkoopbon / factuur</label>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                                onChange={(e) => setData('purchase_receipt', e.target.files?.[0] ?? null)}
+                                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm"
+                            />
+                            {errors.purchase_receipt && <p className="mt-1 text-red-500 text-xs">{errors.purchase_receipt}</p>}
                         </div>
                     </div>
 
                     {/* Details */}
                     <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                         <h2 className="font-bold text-gray-900 text-lg">Details</h2>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Bouwjaar</label>
                                 <input
@@ -321,6 +363,79 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
                         </div>
                     </div>
 
+                    {/* Vertrouwen op shop */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+                        <h2 className="font-bold text-gray-900 text-lg">Vertrouwen op shop</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Garantie (maanden)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="24"
+                                    value={data.warranty_months}
+                                    onChange={(e) => setData('warranty_months', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Bijv. 3"
+                                />
+                                {errors.warranty_months && <p className="mt-1 text-red-500 text-xs">{errors.warranty_months}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Keuringspunten</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={data.inspection_points}
+                                    onChange={(e) => setData('inspection_points', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Bijv. 25"
+                                />
+                                {errors.inspection_points && <p className="mt-1 text-red-500 text-xs">{errors.inspection_points}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Reviewscore (0-5)</label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="5"
+                                    value={data.review_score}
+                                    onChange={(e) => setData('review_score', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Bijv. 4.8"
+                                />
+                                {errors.review_score && <p className="mt-1 text-red-500 text-xs">{errors.review_score}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Aantal reviews</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="9999"
+                                    value={data.review_count}
+                                    onChange={(e) => setData('review_count', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Bijv. 42"
+                                />
+                                {errors.review_count && <p className="mt-1 text-red-500 text-xs">{errors.review_count}</p>}
+                            </div>
+                        </div>
+
+                        <label className="flex items-center gap-3 cursor-pointer rounded-xl border border-gray-200 px-3 py-2">
+                            <input
+                                type="checkbox"
+                                checked={data.delivery_service_included}
+                                onChange={(e) => setData('delivery_service_included', e.target.checked)}
+                                className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                            />
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">Afleverbeurt inbegrepen</div>
+                                <div className="text-xs text-gray-500">Wordt getoond als trust-signaal op de webshop.</div>
+                            </div>
+                        </label>
+                    </div>
+
                     {/* Status */}
                     <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                         <h2 className="font-bold text-gray-900 text-lg">Status & Publicatie</h2>
@@ -353,7 +468,7 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
                         </label>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <button
                             type="submit"
                             disabled={processing}
