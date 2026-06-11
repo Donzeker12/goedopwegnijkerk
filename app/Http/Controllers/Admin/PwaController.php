@@ -9,8 +9,10 @@ use App\Models\ScooterColorRequest;
 use App\Models\ScooterPart;
 use App\Models\ScooterTestRideRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class PwaController extends Controller
 {
@@ -67,23 +69,44 @@ class PwaController extends Controller
 
     public function notifications(): JsonResponse
     {
-        $latestChatId = (int) ChatSession::query()->max('id');
-        $latestColorRequestId = (int) ScooterColorRequest::query()->max('id');
-        $latestTestRideRequestId = (int) ScooterTestRideRequest::query()->max('id');
+        try {
+            $latestChatId = (int) ChatSession::query()->max('id');
+            $latestColorRequestId = (int) ScooterColorRequest::query()->max('id');
+            $latestTestRideRequestId = (int) ScooterTestRideRequest::query()->max('id');
 
-        return response()->json([
-            'counts' => [
-                'new_chats' => (int) ChatSession::query()->where('status', 'nieuw')->count('*'),
-                'new_color_requests' => (int) ScooterColorRequest::query()->where('status', 'nieuw')->count('*'),
-                'new_test_ride_requests' => (int) ScooterTestRideRequest::query()->where('status', 'nieuw')->count('*'),
-                'open_payments' => (int) PurchaseEntry::query()->where('payment_status', 'open')->count('*'),
-            ],
-            'latest' => [
-                'chat_id' => $latestChatId,
-                'color_request_id' => $latestColorRequestId,
-                'test_ride_request_id' => $latestTestRideRequestId,
-            ],
-            'generated_at' => now()->toIso8601String(),
-        ]);
+            return response()->json([
+                'counts' => [
+                    'new_chats' => (int) ChatSession::query()->where('status', 'nieuw')->count('*'),
+                    'new_color_requests' => (int) ScooterColorRequest::query()->where('status', 'nieuw')->count('*'),
+                    'new_test_ride_requests' => (int) ScooterTestRideRequest::query()->where('status', 'nieuw')->count('*'),
+                    'open_payments' => (int) PurchaseEntry::query()->where('payment_status', 'open')->count('*'),
+                ],
+                'latest' => [
+                    'chat_id' => $latestChatId,
+                    'color_request_id' => $latestColorRequestId,
+                    'test_ride_request_id' => $latestTestRideRequestId,
+                ],
+                'generated_at' => now()->toIso8601String(),
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('Admin notifications polling failed; returning safe fallback payload.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'counts' => [
+                    'new_chats' => 0,
+                    'new_color_requests' => 0,
+                    'new_test_ride_requests' => 0,
+                    'open_payments' => 0,
+                ],
+                'latest' => [
+                    'chat_id' => 0,
+                    'color_request_id' => 0,
+                    'test_ride_request_id' => 0,
+                ],
+                'generated_at' => now()->toIso8601String(),
+            ]);
+        }
     }
 }
