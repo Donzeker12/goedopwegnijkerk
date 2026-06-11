@@ -104,7 +104,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
     const { props } = usePage<{ flash?: { success?: string } }>();
     const flash = props.flash;
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, isDirty } = useForm({
         brand_id: String(scooter.brand_id),
         scooter_model_id: String(scooter.scooter_model_id),
         purchase_price: String(scooter.purchase_price),
@@ -453,7 +453,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pb-24 md:pb-0">
                 {/* Left: Scooter form */}
                 <div className="xl:col-span-2 space-y-6">
-                    <form onSubmit={handleSave} className="space-y-6">
+                    <form id="scooter-edit-form" onSubmit={handleSave} className="space-y-6">
                         {/* Merk & Model */}
                         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                             <h2 className="font-bold text-gray-900">Merk & Model</h2>
@@ -1378,6 +1378,17 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                     </div>
                 </div>
             </div>
+
+            {isDirty && (
+                <button
+                    type="submit"
+                    form="scooter-edit-form"
+                    disabled={processing}
+                    className="fixed left-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-70 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
+                >
+                    {processing ? 'Opslaan...' : 'Wijzigingen opslaan'}
+                </button>
+            )}
 
             <button
                 type="button"
