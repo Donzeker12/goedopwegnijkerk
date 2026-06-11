@@ -9,24 +9,12 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.4",
         "inertiajs/inertia-laravel": "^3.0",
-        "laravel/framework": ">=13.13,<13.15",
+        "laravel/framework": ">=13.13",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "minishlink/web-push": "*",
-        "symfony/console": "^7.4",
-        "symfony/css-selector": "^7.4",
-        "symfony/error-handler": "^7.4",
-        "symfony/event-dispatcher": "^7.4",
-        "symfony/finder": "^7.4",
-        "symfony/http-foundation": "^7.4",
-        "symfony/http-kernel": "^7.4",
-        "symfony/mime": "^7.4",
-        "symfony/process": "^7.4",
-        "symfony/routing": "^7.4",
-        "symfony/translation": "^7.4",
-        "symfony/var-dumper": "^7.4"
+        "minishlink/web-push": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
