@@ -17,7 +17,7 @@ class SiteSettingsController extends Controller
 
         abort_unless($firstSection !== null, 404);
 
-        return redirect()->route('site-settings.edit', ['section' => $firstSection]);
+        return redirect()->route('admin.site-settings.edit', ['section' => $firstSection]);
     }
 
     public function edit(string $section): Response
