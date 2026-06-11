@@ -22,6 +22,7 @@ const navItems = [
     { href: '/admin/push', label: 'Devices', icon: '🔔' },
     { href: '/admin/blog', label: 'Blog', icon: '📰' },
     { href: '/admin/paginas/over-ons', label: "Pagina's", icon: '📝' },
+    { href: '/admin/site-instellingen', label: 'Site instellingen', icon: '⚙️' },
     { href: '/profiel', label: 'Profiel', icon: '👤' },
 ];
 

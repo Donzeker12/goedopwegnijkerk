@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import SeoHead from '../components/SeoHead';
 import AppLayout from '../layouts/AppLayout';
+import type { HomeCtaSettings, HomeFeaturedSettings, HomeHeroSettings, HomeInfoSettings, HomeQualitySettings } from '../types/site-settings';
 
 interface Scooter {
     id: number;
@@ -36,9 +37,22 @@ interface Props {
         region: string;
         country: string;
     };
+    siteSettings: {
+        'home-hero': HomeHeroSettings;
+        'home-quality': HomeQualitySettings;
+        'home-featured': HomeFeaturedSettings;
+        'home-cta': HomeCtaSettings;
+        'home-info': HomeInfoSettings;
+    };
 }
 
-export default function Home({ featured, latestBlogs, cityLandingPages, business }: Props) {
+export default function Home({ featured, latestBlogs, cityLandingPages, business, siteSettings }: Props) {
+    const hero = siteSettings['home-hero'];
+    const quality = siteSettings['home-quality'];
+    const featuredSection = siteSettings['home-featured'];
+    const cta = siteSettings['home-cta'];
+    const info = siteSettings['home-info'];
+
     const localBusinessSchema = {
         '@context': 'https://schema.org',
         '@type': 'AutoDealer',
@@ -92,46 +106,42 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                 <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-18 pb-20 sm:pt-24 sm:pb-24">
                     <div className="max-w-3xl">
                         <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-orange-200">
-                            Premium occasions met garantie
+                            {hero.badge}
                         </p>
 
                         <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05]">
-                            Goed Op Weg
-                            <span className="block text-orange-400">Nijkerk</span>
+                            {hero.title_line_1}
+                            <span className="block text-orange-400">{hero.title_highlight}</span>
                         </h1>
 
                         <p className="mt-6 text-base sm:text-lg text-slate-200 max-w-2xl leading-relaxed">
-                            Elke scooter wordt technisch nagelopen, rijklaar gemaakt en helder geprijsd. Geen verrassingen, wel vertrouwen vanaf de eerste rit.
+                            {hero.description}
                         </p>
                         <p className="mt-3 text-sm sm:text-base text-orange-200 font-semibold">
-                            Goed op weg begint met vertrouwen.
+                            {hero.tagline}
                         </p>
 
                         <div className="mt-8 flex flex-col sm:flex-row gap-3">
                             <Link
-                                href="/scooters"
+                                href={hero.primary_cta_href}
                                 className="inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-7 py-3.5 text-base font-bold text-white transition-colors"
                             >
-                                Bekijk direct aanbod
+                                {hero.primary_cta_label}
                             </Link>
                             <Link
-                                href="/over-ons"
+                                href={hero.secondary_cta_href}
                                 className="inline-flex items-center justify-center rounded-xl border border-white/25 bg-white/10 hover:bg-white/15 px-7 py-3.5 text-base font-semibold text-white transition-colors"
                             >
-                                Onze werkwijze
+                                {hero.secondary_cta_label}
                             </Link>
                         </div>
 
                         <div className="mt-9 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {[
-                                { k: 'Inspectie', v: 'Punt voor punt', s: 'Controle op remmen, elektra en aandrijving' },
-                                { k: 'Levering', v: 'Rijklaar', s: 'Meteen klaar voor gebruik' },
-                                { k: 'Prijsbeleid', v: 'Transparant', s: 'Heldere prijs zonder kleine lettertjes' },
-                            ].map((item) => (
-                                <div key={item.k} className="rounded-xl border border-white/15 bg-white/6 p-3.5 backdrop-blur-sm">
-                                    <div className="text-[11px] uppercase tracking-[0.14em] text-slate-300">{item.k}</div>
-                                    <div className="text-lg font-extrabold text-white mt-1">{item.v}</div>
-                                    <div className="text-xs text-slate-300 mt-0.5">{item.s}</div>
+                            {hero.highlights.map((item) => (
+                                <div key={`${item.eyebrow}-${item.title}`} className="rounded-xl border border-white/15 bg-white/6 p-3.5 backdrop-blur-sm">
+                                    <div className="text-[11px] uppercase tracking-[0.14em] text-slate-300">{item.eyebrow}</div>
+                                    <div className="text-lg font-extrabold text-white mt-1">{item.title}</div>
+                                    <div className="text-xs text-slate-300 mt-0.5">{item.description}</div>
                                 </div>
                             ))}
                         </div>
@@ -143,21 +153,17 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-end justify-between gap-4 mb-8">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">Onze standaard</p>
-                            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Kwaliteit eerst, verkoop daarna</h2>
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{quality.eyebrow}</p>
+                            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{quality.title}</h2>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        {[
-                            { icon: 'VK', title: 'Vakkundig herstel', desc: 'Onderdelen worden waar nodig vervangen of gereviseerd voor duurzaam gebruik.' },
-                            { icon: 'QC', title: 'Technische eindcheck', desc: 'Voor aflevering doorloopt elke scooter een vaste kwaliteitscontrole.' },
-                            { icon: '€', title: 'Transparante prijs', desc: 'Wij communiceren duidelijk wat je krijgt en waarom de prijs klopt.' },
-                        ].map((f) => (
-                            <div key={f.title} className="rounded-2xl border border-slate-200 bg-linear-to-b from-white to-slate-50 p-6 shadow-sm">
-                                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold tracking-wide text-white mb-4">{f.icon}</div>
-                                <h3 className="font-bold text-slate-900 text-lg mb-2">{f.title}</h3>
-                                <p className="text-slate-600 text-sm leading-relaxed">{f.desc}</p>
+                        {quality.cards.map((card) => (
+                            <div key={`${card.icon}-${card.title}`} className="rounded-2xl border border-slate-200 bg-linear-to-b from-white to-slate-50 p-6 shadow-sm">
+                                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold tracking-wide text-white mb-4">{card.icon}</div>
+                                <h3 className="font-bold text-slate-900 text-lg mb-2">{card.title}</h3>
+                                <p className="text-slate-600 text-sm leading-relaxed">{card.description}</p>
                             </div>
                         ))}
                     </div>
@@ -170,15 +176,15 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between mb-10 gap-4">
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">Actueel</p>
-                                <h2 className="text-3xl font-black text-slate-900 mt-1">Nieuwste aanbod</h2>
-                                <p className="text-slate-600 mt-1">Rijklaar geselecteerd en direct beschikbaar</p>
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{featuredSection.eyebrow}</p>
+                                <h2 className="text-3xl font-black text-slate-900 mt-1">{featuredSection.title}</h2>
+                                <p className="text-slate-600 mt-1">{featuredSection.description}</p>
                             </div>
                             <Link
-                                href="/scooters"
+                                href={featuredSection.link_href}
                                 className="text-orange-600 hover:text-orange-700 font-semibold text-sm"
                             >
-                                Alle scooters →
+                                {featuredSection.link_label}
                             </Link>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -274,16 +280,16 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
             <section className="py-18 bg-slate-900 text-white">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="rounded-3xl border border-white/10 bg-linear-to-r from-orange-600 to-orange-500 p-8 sm:p-10 text-center shadow-2xl shadow-orange-950/20">
-                        <h2 className="text-3xl sm:text-4xl font-black mb-3">Klaar voor jouw volgende scooter?</h2>
+                        <h2 className="text-3xl sm:text-4xl font-black mb-3">{cta.title}</h2>
                         <p className="text-orange-100 max-w-2xl mx-auto mb-7">
-                            Bekijk het actuele aanbod en kies met vertrouwen. Liever eerst advies of een proefrit? Wij helpen je persoonlijk.
+                            {cta.description}
                         </p>
                         <div className="flex justify-center">
                             <Link
-                                href="/scooters"
+                                href={cta.button_href}
                                 className="bg-white text-orange-600 font-bold px-8 py-3 rounded-xl hover:bg-orange-50 transition-colors inline-flex justify-center"
                             >
-                                Bekijk alle scooters
+                                {cta.button_label}
                             </Link>
                         </div>
                     </div>
@@ -292,21 +298,17 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
 
             <section className="py-14 bg-white border-t border-slate-100">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Tweedehands scooter kopen in Nijkerk</h2>
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{info.title}</h2>
                     <p className="text-slate-600 mt-3 leading-relaxed">
-                        Zoek je een tweedehands scooter in Nijkerk die niet alleen mooi oogt, maar ook technisch goed is? Bij Goed Op Weg Nijkerk staat betrouwbaarheid voorop. Wij controleren, herstellen en leveren rijklaar met een eerlijke prijs en duidelijke informatie per scooter.
+                        {info.description}
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-                        <Link href="/scooters" className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
-                            Bekijk scooters te koop
-                        </Link>
-                        <Link href="/faq" className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
-                            Lees FAQ en afleverbelofte
-                        </Link>
-                        <Link href="/over-ons" className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
-                            Ontdek onze werkwijze
-                        </Link>
+                        {info.links.map((item) => (
+                            <Link key={`${item.label}-${item.href}`} href={item.href} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+                                {item.label}
+                            </Link>
+                        ))}
                     </div>
 
                     {cityLandingPages.length > 0 && (

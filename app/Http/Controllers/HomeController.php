@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
 use App\Models\Scooter;
+use App\Support\SiteSettings;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,6 +47,13 @@ class HomeController extends Controller
         return Inertia::render('home', [
             'featured' => $featured,
             'latestBlogs' => $latestBlogs,
+            'siteSettings' => SiteSettings::many([
+                'home-hero',
+                'home-quality',
+                'home-featured',
+                'home-cta',
+                'home-info',
+            ]),
             'cityLandingPages' => collect(config('seo.city_pages', []))
                 ->map(fn (array $city, string $slug) => [
                     'slug' => $slug,

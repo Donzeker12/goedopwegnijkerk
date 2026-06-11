@@ -6,6 +6,7 @@ use App\Models\Scooter;
 use App\Models\ScooterColorRequest;
 use App\Models\ScooterTestRideRequest;
 use App\Support\WebPushNotifier;
+use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,6 +37,10 @@ class ShopController extends Controller
 
         return Inertia::render('shop/index', [
             'scooters' => $scooters,
+            'siteSettings' => SiteSettings::many([
+                'shop-hero',
+                'shop-info',
+            ]),
         ]);
     }
 

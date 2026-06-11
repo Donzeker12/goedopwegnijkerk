@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\PwaController;
 use App\Http\Controllers\Admin\ScooterController;
 use App\Http\Controllers\Admin\ScooterPartController;
 use App\Http\Controllers\Admin\ScooterPhotoController;
+use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LocationLandingController;
 use App\Http\Controllers\ProfileController;
@@ -155,4 +156,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Page content editor
     Route::get('/paginas/{slug}', [PageContentController::class, 'edit'])->name('pages.edit');
     Route::put('/paginas/{slug}', [PageContentController::class, 'update'])->name('pages.update');
+
+    // Site settings
+    Route::get('/site-instellingen', [SiteSettingsController::class, 'index'])->name('site-settings.index');
+    Route::get('/site-instellingen/{section}', [SiteSettingsController::class, 'edit'])->name('site-settings.edit');
+    Route::put('/site-instellingen/{section}', [SiteSettingsController::class, 'update'])->name('site-settings.update');
 });

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
+import type { ShopHeroSettings, ShopInfoSettings } from '../../types/site-settings';
 
 interface Scooter {
     id: number;
@@ -17,9 +18,16 @@ interface Scooter {
 
 interface Props {
     scooters: Scooter[];
+    siteSettings: {
+        'shop-hero': ShopHeroSettings;
+        'shop-info': ShopInfoSettings;
+    };
 }
 
-export default function ShopIndex({ scooters }: Props) {
+export default function ShopIndex({ scooters, siteSettings }: Props) {
+    const hero = siteSettings['shop-hero'];
+    const info = siteSettings['shop-info'];
+
     return (
         <AppLayout>
             <SeoHead
@@ -35,9 +43,9 @@ export default function ShopIndex({ scooters }: Props) {
             {/* Hero */}
             <section className="bg-gray-900 text-white py-16">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 className="text-4xl font-bold mb-3">Scooters te koop</h1>
+                    <h1 className="text-4xl font-bold mb-3">{hero.title}</h1>
                     <p className="text-gray-400 text-lg">
-                        {scooters.length} {scooters.length === 1 ? 'scooter' : 'scooters'} beschikbaar
+                        {scooters.length} {scooters.length === 1 ? hero.count_label_singular : hero.count_label_plural}
                     </p>
                 </div>
             </section>
@@ -112,24 +120,17 @@ export default function ShopIndex({ scooters }: Props) {
 
             <section className="py-12 bg-white border-t border-gray-100">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-gray-900">Scooters te koop met duidelijke historie</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{info.title}</h2>
                     <p className="mt-3 text-gray-600 leading-relaxed max-w-4xl">
-                        In ons aanbod vind je tweedehands scooters die technisch zijn nagekeken en rijklaar worden geleverd. Per scooter laten we zien wat recent is gedaan, welke specificaties relevant zijn en hoe je een proefrit kunt plannen. Zo kun je nuchter vergelijken en met vertrouwen kiezen.
+                        {info.description}
                     </p>
 
                     <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <Link href="/faq" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
-                            Garantie en veelgestelde vragen
-                        </Link>
-                        <Link href="/over-ons" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
-                            Hoe wij scooters rijklaar maken
-                        </Link>
-                        <Link href="/blog" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
-                            Onderhoudstips en updates
-                        </Link>
-                        <Link href="/" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
-                            Terug naar homepage
-                        </Link>
+                        {info.links.map((item) => (
+                            <Link key={`${item.label}-${item.href}`} href={item.href} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors">
+                                {item.label}
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </section>
