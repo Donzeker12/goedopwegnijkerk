@@ -1384,7 +1384,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                     type="submit"
                     form="scooter-edit-form"
                     disabled={processing}
-                    className="fixed left-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-70 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
+                    className="fixed left-4 bottom-24 sm:bottom-6 z-70 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
                 >
                     {processing ? 'Opslaan...' : 'Wijzigingen opslaan'}
                 </button>
@@ -1393,7 +1393,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
             <button
                 type="button"
                 onClick={jumpToQuickNeed}
-                className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-70 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
+                className="fixed right-4 bottom-24 sm:bottom-6 z-70 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
             >
                 + Nodig onderdeel
             </button>
