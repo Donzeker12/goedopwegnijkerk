@@ -1,7 +1,7 @@
+import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import SeoHead from '../components/SeoHead';
 import AppLayout from '../layouts/AppLayout';
-import { Link } from '@inertiajs/react';
 
 interface FaqItem {
     id: string;
@@ -11,21 +11,22 @@ interface FaqItem {
 
 function AccordionItem({ item }: { item: FaqItem }) {
     const [open, setOpen] = useState(false);
+
     return (
-        <div className="border border-gray-100 rounded-2xl overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-100">
             <button
                 type="button"
-                onClick={() => setOpen((v) => !v)}
-                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white hover:bg-gray-50 transition-colors"
+                onClick={() => setOpen((value) => !value)}
+                className="flex w-full items-center justify-between gap-4 bg-white px-6 py-5 text-left transition-colors hover:bg-gray-50"
             >
-                <span className="font-semibold text-gray-900 text-sm sm:text-base leading-snug">{item.question}</span>
-                <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-all ${open ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                <span className="text-sm font-semibold leading-snug text-gray-900 sm:text-base">{item.question}</span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all ${open ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
                     {open ? '−' : '+'}
                 </span>
             </button>
             {open && (
-                <div className="px-6 pb-6 bg-white border-t border-gray-50">
-                    <div className="pt-4 text-gray-600 text-sm sm:text-base leading-relaxed space-y-3">
+                <div className="border-t border-gray-50 bg-white px-6 pb-6">
+                    <div className="space-y-3 pt-4 text-sm leading-relaxed text-gray-600 sm:text-base">
                         {item.answer}
                     </div>
                 </div>
@@ -41,10 +42,10 @@ const faqItems: FaqItem[] = [
         answer: (
             <>
                 <p>
-                    <strong>Ja, absoluut!</strong> Wij staan achter de kwaliteit van de scooters die wij opknappen. Daarom leveren wij al onze scooters standaard met een vaste garantieregeling op het motorblok en de accu.
+                    Ja, absoluut. Wij staan achter de kwaliteit van de scooters die wij opknappen. Daarom leveren wij al onze scooters standaard met een vaste garantieregeling op het motorblok en de accu.
                 </p>
                 <p>
-                    Zo rijd je altijd met een gerust hart weg. <strong>Vraag bij de aankoop naar de exacte garantietermijn van jouw scooter.</strong>
+                    Vraag bij de aankoop naar de exacte garantietermijn van jouw scooter.
                 </p>
             </>
         ),
@@ -55,15 +56,10 @@ const faqItems: FaqItem[] = [
         answer: (
             <>
                 <p>
-                    Bij de all-in prijs van je scooter zit een gratis controle- en onderhoudsbeurt inbegrepen. We adviseren om hiervoor een afspraak te maken zodra je <strong>1.500 kilometer</strong> hebt gereden (of na 6 maanden). Tijdens deze beurt lopen we de scooter volledig na:
+                    Bij de all-in prijs van je scooter zit een gratis controle- en onderhoudsbeurt inbegrepen. We adviseren om hiervoor een afspraak te maken zodra je 1.500 kilometer hebt gereden of na 6 maanden.
                 </p>
-                <ul className="list-disc list-inside space-y-1.5 mt-2 ml-2">
-                    <li>We verversen de motorolie.</li>
-                    <li>De bougie en filters worden gecontroleerd en schoongemaakt/vervangen.</li>
-                    <li>De remmen en bandenspanning worden perfect afgesteld.</li>
-                </ul>
-                <p className="mt-2">
-                    Zo blijft je scooter in topconditie!
+                <p>
+                    Tijdens deze beurt lopen we de scooter volledig na: we verversen de motorolie, controleren de bougie en filters en stellen de remmen en bandenspanning af.
                 </p>
             </>
         ),
@@ -74,10 +70,10 @@ const faqItems: FaqItem[] = [
         answer: (
             <>
                 <p>
-                    De garantie dekt vitale onderdelen zoals het motorblok en de elektronica (accu). Slijtagedelen die door het gebruik dunner worden of kapot kunnen gaan, vallen hierbuiten.
+                    De garantie dekt vitale onderdelen zoals het motorblok en de elektronica. Slijtageonderdelen die door gebruik minder worden of kapot kunnen gaan, vallen hierbuiten.
                 </p>
                 <p>
-                    Denk hierbij aan banden, remblokken, lampjes en eventuele schade die is ontstaan door vallen of een ongeluk.
+                    Denk hierbij aan banden, remblokken, lampjes en schade die is ontstaan door vallen of een ongeluk.
                 </p>
             </>
         ),
@@ -88,10 +84,10 @@ const faqItems: FaqItem[] = [
         answer: (
             <>
                 <p>
-                    <strong>Zeker!</strong> Heb je nog een scooter in de schuur staan die niet meer start, schade heeft of waar je simpelweg vanaf wilt? Wij kopen ook opknappers in.
+                    Zeker. Heb je nog een scooter in de schuur staan die niet meer start, schade heeft of waar je simpelweg vanaf wilt? Wij kopen ook opknappers in.
                 </p>
                 <p>
-                    Neem contact met ons op, stuur een paar foto's en de details op, en we kijken of we een mooie deal kunnen maken.
+                    Neem contact met ons op, stuur een paar foto&apos;s en de details door, en we kijken of we een mooie deal kunnen maken.
                 </p>
             </>
         ),
@@ -102,10 +98,10 @@ const faqItems: FaqItem[] = [
         answer: (
             <>
                 <p>
-                    Natuurlijk! Als je een mooie scooter op onze website hebt gezien, ben je van harte welkom om hem in het echt te komen bekijken en een proefrit te maken.
+                    Natuurlijk. Als je een mooie scooter op onze website hebt gezien, ben je van harte welkom om hem in het echt te komen bekijken en een proefrit te maken.
                 </p>
                 <p>
-                    Neem vooraf even contact met ons op om een moment af te spreken, dan zorgen wij dat de koffie en de scooter voor je klaarstaan.
+                    Neem vooraf even contact met ons op om een moment af te spreken.
                 </p>
             </>
         ),
@@ -139,19 +135,17 @@ export default function Faq() {
                 jsonLd={faqSchema}
             />
 
-            {/* Hero */}
-            <section className="bg-linear-to-br from-gray-900 to-gray-800 text-white py-20">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="text-5xl mb-4">❓</div>
-                    <h1 className="text-4xl font-bold mb-4">Veelgestelde vragen</h1>
-                    <p className="text-gray-300 text-lg max-w-xl mx-auto">
-                        Alles wat je moet weten over onze garantie, onderhoud, en service.
+            <section className="bg-linear-to-br from-gray-900 to-gray-800 py-20 text-white">
+                <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+                    <div className="mb-4 text-5xl">❓</div>
+                    <h1 className="mb-4 text-4xl font-bold">Veelgestelde vragen</h1>
+                    <p className="mx-auto max-w-xl text-lg text-gray-300">
+                        Alles wat je moet weten over onze garantie, onderhoud en service.
                     </p>
                 </div>
             </section>
 
-            {/* FAQ */}
-            <section className="py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
                 <div className="space-y-3">
                     {faqItems.map((item) => (
                         <AccordionItem key={item.id} item={item} />
@@ -159,17 +153,13 @@ export default function Faq() {
                 </div>
             </section>
 
-            {/* CTA */}
-            <section className="bg-orange-500 text-white py-16">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h2 className="text-3xl font-bold mb-4">Nog vragen?</h2>
-                    <p className="text-orange-100 mb-8 max-w-xl mx-auto">
+            <section className="bg-orange-500 py-16 text-white">
+                <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+                    <h2 className="mb-4 text-3xl font-bold">Nog vragen?</h2>
+                    <p className="mx-auto mb-8 max-w-xl text-orange-100">
                         Neem gerust contact met ons op. We helpen je graag verder met alles wat je wilt weten.
                     </p>
-                    <Link
-                        href="/chat"
-                        className="inline-block bg-gray-900 hover:bg-black text-white font-semibold px-8 py-3 rounded-xl transition-colors"
-                    >
+                    <Link href="/chat" className="inline-block rounded-xl bg-gray-900 px-8 py-3 font-semibold text-white transition-colors hover:bg-black">
                         💬 Neem contact op
                     </Link>
                 </div>
