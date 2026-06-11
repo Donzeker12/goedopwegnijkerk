@@ -7,7 +7,7 @@ set -e
 # =============================================================
 
 APP_DIR="/var/www/goedopwegnijkerk"
-PHP="php8.3"
+PHP="php8.4"
 COMPOSER="composer"
 
 echo "===> Deployment gestart: $(date)"
