@@ -72,6 +72,21 @@ interface Props {
     new_test_ride_requests_count: number;
 }
 
+function contactPreferenceLabel(value: string) {
+    switch (value) {
+        case 'telefoon':
+            return 'Telefoon';
+        case 'email':
+            return 'E-mail';
+        case 'website_chat':
+            return 'Website chat';
+        case 'whatsapp':
+            return 'WhatsApp';
+        default:
+            return value;
+    }
+}
+
 function euro(amount: number) {
     return `€${amount.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`;
 }
@@ -192,7 +207,7 @@ export default function FinanceIndex({ entries, open_payments, category_totals, 
                                         </div>
 
                                         <div className="mt-2 text-xs text-gray-600">
-                                            Contact via: <span className="font-semibold">{request.contact_preference}</span>
+                                            Contact via: <span className="font-semibold">{contactPreferenceLabel(request.contact_preference)}</span>
                                             {request.preferred_date ? ` • Datum: ${request.preferred_date}` : ''}
                                             {request.preferred_time ? ` • Tijd: ${request.preferred_time}` : ''}
                                         </div>

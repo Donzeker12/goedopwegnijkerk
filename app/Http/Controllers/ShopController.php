@@ -176,7 +176,7 @@ class ShopController extends Controller
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'preferred_date' => ['nullable', 'date'],
             'preferred_time' => ['nullable', 'string', 'max:50'],
-            'contact_preference' => ['required', 'in:telefoon,email,whatsapp'],
+            'contact_preference' => ['required', 'in:telefoon,email,website_chat'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 

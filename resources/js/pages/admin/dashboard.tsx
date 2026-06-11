@@ -68,6 +68,21 @@ interface Props {
     total_scooter_views: number;
 }
 
+function contactPreferenceLabel(value: string) {
+    switch (value) {
+        case 'telefoon':
+            return 'Telefoon';
+        case 'email':
+            return 'E-mail';
+        case 'website_chat':
+            return 'Website chat';
+        case 'whatsapp':
+            return 'WhatsApp';
+        default:
+            return value;
+    }
+}
+
 const statusLabels: Record<string, { label: string; color: string }> = {
     in_reparatie: { label: 'In reparatie', color: 'bg-yellow-100 text-yellow-700' },
     te_koop: { label: 'Te koop', color: 'bg-emerald-100 text-emerald-700' },
@@ -145,7 +160,7 @@ export default function Dashboard({ scooters, totals, color_requests, new_color_
                                 </div>
 
                                 <div className="mt-2 text-xs text-gray-600">
-                                    Contact via: <span className="font-semibold">{request.contact_preference}</span>
+                                    Contact via: <span className="font-semibold">{contactPreferenceLabel(request.contact_preference)}</span>
                                     {request.preferred_date ? ` • Datum: ${request.preferred_date}` : ''}
                                     {request.preferred_time ? ` • Tijd: ${request.preferred_time}` : ''}
                                 </div>

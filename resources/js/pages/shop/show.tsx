@@ -308,7 +308,7 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
         customer_phone: '',
         preferred_date: '',
         preferred_time: '',
-        contact_preference: 'telefoon' as 'telefoon' | 'email' | 'whatsapp',
+        contact_preference: 'telefoon' as 'telefoon' | 'email' | 'website_chat',
         notes: '',
     });
 
@@ -611,12 +611,12 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
                                         <label className="text-xs text-gray-500">Voorkeur contact</label>
                                         <select
                                             value={testRideForm.data.contact_preference}
-                                            onChange={(e) => testRideForm.setData('contact_preference', e.target.value as 'telefoon' | 'email' | 'whatsapp')}
+                                            onChange={(e) => testRideForm.setData('contact_preference', e.target.value as 'telefoon' | 'email' | 'website_chat')}
                                             className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                                         >
                                             <option value="telefoon">Telefoon</option>
                                             <option value="email">E-mail</option>
-                                            <option value="whatsapp">WhatsApp</option>
+                                            <option value="website_chat">Website chat</option>
                                         </select>
                                     </div>
                                 </div>
