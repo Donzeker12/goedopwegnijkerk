@@ -90,11 +90,13 @@ interface Props {
         loyalty_pass_admin_preview?: boolean;
     };
     product_templates: {
+        id: number;
         name: string;
         part_brand: string | null;
         specification: string | null;
         category: string | null;
         cost: number;
+        stock_quantity: number;
     }[];
 }
 
@@ -142,6 +144,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
         procurement_status: 'binnen' as 'nodig' | 'besteld' | 'binnen' | 'geplaatst',
         category: '',
         cost: '',
+        source_stock_part_id: '',
         purchased_at: '',
         notes: '',
         receipt: null as File | null,
@@ -181,10 +184,10 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
 
     function applyProductTemplate(rawKey: string) {
         setSelectedTemplateKey(rawKey);
-        const idx = Number.parseInt(rawKey, 10);
-        if (Number.isNaN(idx)) return;
+        const templateId = Number.parseInt(rawKey, 10);
+        if (Number.isNaN(templateId)) return;
 
-        const tpl = product_templates[idx];
+        const tpl = product_templates.find((item) => item.id === templateId);
         if (!tpl) return;
 
         partForm.setData((prev) => ({
@@ -195,6 +198,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
             category: tpl.category ?? prev.category,
             cost: String(tpl.cost),
             quantity: prev.quantity || '1',
+            source_stock_part_id: String(tpl.id),
         }));
     }
 
@@ -310,7 +314,10 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
         e.preventDefault();
         partForm.post(`/admin/scooters/${scooter.id}/onderdelen`, {
             forceFormData: true,
-            onSuccess: () => partForm.reset(),
+            onSuccess: () => {
+                setSelectedTemplateKey('');
+                partForm.reset();
+            },
         });
     }
 
@@ -988,15 +995,13 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                                         onChange={(e) => applyProductTemplate(e.target.value)}
                                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
                                     >
-                                        <option value="">Kies bestaand product om velden te vullen...</option>
-                                        {[...product_templates]
-                                            .map((tpl, idx) => ({ tpl, idx }))
-                                            .sort((a, b) => a.tpl.name.localeCompare(b.tpl.name, 'nl'))
-                                            .map(({ tpl, idx }) => (
-                                            <option key={`${tpl.name}-${tpl.part_brand ?? ''}-${tpl.specification ?? ''}-${idx}`} value={idx}>
+                                        <option value="">Kies product uit voorraad...</option>
+                                        {product_templates.map((tpl) => (
+                                            <option key={tpl.id} value={tpl.id}>
                                                 {tpl.name}
                                                 {tpl.part_brand ? ` - ${tpl.part_brand}` : ''}
                                                 {tpl.specification ? ` (${tpl.specification})` : ''}
+                                                {` - voorraad ${tpl.stock_quantity}`}
                                                 {` - €${tpl.cost.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                                             </option>
                                         ))}

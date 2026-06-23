@@ -28,10 +28,14 @@ class ScooterPartController extends Controller
             'procurement_status' => ['nullable', 'in:nodig,besteld,binnen,geplaatst'],
             'category'      => ['nullable', 'string', 'max:100'],
             'cost'          => ['required', 'numeric', 'min:0'],
+            'source_stock_part_id' => ['nullable', 'integer', 'exists:scooter_parts,id'],
             'purchased_at'  => ['nullable', 'date'],
             'notes'         => ['nullable', 'string', 'max:500'],
             'receipt'       => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
+
+        $sourceStockPartId = isset($validated['source_stock_part_id']) ? (int) $validated['source_stock_part_id'] : null;
+        unset($validated['source_stock_part_id']);
 
         if ($request->hasFile('receipt')) {
             $validated['receipt_path'] = $request->file('receipt')->store('receipts/parts', 'public');
@@ -56,6 +60,10 @@ class ScooterPartController extends Controller
 
         if ($part->procurement_status === 'besteld') {
             PartOrderNotifier::send($part, (string) optional($request->user())->name, 'Scooter beheer');
+        }
+
+        if ($part->procurement_status === 'geplaatst') {
+            $this->consumeFromInventory($part, $sourceStockPartId);
         }
 
         if (in_array($part->procurement_status, ['besteld', 'binnen'], true) && $part->total_cost > 0) {
@@ -102,19 +110,16 @@ class ScooterPartController extends Controller
 
         $previousStatus = $part->procurement_status;
         $nextStatus = $validated['procurement_status'];
-        $autoPlaced = false;
-
-        // If a scooter-linked part is marked as "binnen", treat it as immediately placed.
-        if ($nextStatus === 'binnen' && $part->scooter_id) {
-            $nextStatus = 'geplaatst';
-            $autoPlaced = true;
-        }
 
         $part->update([
             'procurement_status' => $nextStatus,
             'purchased_at' => in_array($nextStatus, ['binnen', 'geplaatst'], true) ? ($part->purchased_at ?? now()->toDateString()) : $part->purchased_at,
-            'placed_at' => $nextStatus === 'geplaatst' ? ($part->placed_at ?? now()->toDateString()) : $part->placed_at,
+            'placed_at' => $nextStatus === 'geplaatst' ? ($part->placed_at ?? now()->toDateString()) : null,
         ]);
+
+        if ($previousStatus !== 'geplaatst' && $nextStatus === 'geplaatst') {
+            $this->consumeFromInventory($part);
+        }
 
         if (
             in_array($nextStatus, ['besteld', 'binnen', 'geplaatst'], true)
@@ -138,8 +143,51 @@ class ScooterPartController extends Controller
             PartOrderNotifier::send($part, (string) optional($request->user())->name, 'Scooter beheer');
         }
 
-        return back()->with('success', $autoPlaced
-            ? 'Onderdeelstatus bijgewerkt: onderdeel is automatisch als geplaatst gemarkeerd.'
-            : 'Onderdeelstatus bijgewerkt.');
+        return back()->with('success', 'Onderdeelstatus bijgewerkt.');
+    }
+
+    private function consumeFromInventory(ScooterPart $part, ?int $sourceStockPartId = null): void
+    {
+        $source = null;
+
+        if ($sourceStockPartId) {
+            $source = ScooterPart::query()
+                ->whereKey($sourceStockPartId)
+                ->whereNull('scooter_id')
+                ->where('procurement_status', 'binnen')
+                ->where('quantity', '>', 0)
+                ->first();
+        }
+
+        if (! $source) {
+            $source = ScooterPart::query()
+                ->whereNull('scooter_id')
+                ->where('procurement_status', 'binnen')
+                ->where('quantity', '>', 0)
+                ->where('name', $part->name)
+                ->where('cost', $part->cost)
+                ->where(function ($query) use ($part) {
+                    if ($part->part_brand === null) {
+                        $query->whereNull('part_brand');
+                    } else {
+                        $query->where('part_brand', $part->part_brand);
+                    }
+                })
+                ->where(function ($query) use ($part) {
+                    if ($part->specification === null) {
+                        $query->whereNull('specification');
+                    } else {
+                        $query->where('specification', $part->specification);
+                    }
+                })
+                ->orderBy('id')
+                ->first();
+        }
+
+        if (! $source) {
+            return;
+        }
+
+        $source->decrement('quantity', 1);
     }
 }

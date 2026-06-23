@@ -9,12 +9,108 @@ use App\Models\Scooter;
 use App\Models\ScooterPart;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ScooterController extends Controller
 {
+    private const WARRANTY_MONTHS_LIMIT = 3;
+
+    private const WARRANTY_KM_LIMIT = 2500;
+
+    private function defaultWarrantyInspectionLines(): array
+    {
+        return [
+            'Remmen gecontroleerd',
+            'Verlichting gecontroleerd',
+            'Bandenprofiel en spanning gecontroleerd',
+            'Accu en laadsysteem getest',
+            'Stuur- en balhoofdspeling gecontroleerd',
+            'Motorblok op lekkage gecontroleerd',
+            'Aandrijving gecontroleerd',
+            'Proefrit uitgevoerd',
+            'Vloeistoffen en smering gecontroleerd',
+            'Algemene veiligheidscheck afgerond',
+        ];
+    }
+
+    private function defaultMaintenanceInspectionLines(): array
+    {
+        return [
+            ['category' => 'Motor & Vloeistoffen', 'label' => 'Motorolie verversen (4-takt, bijv. 10W40)'],
+            ['category' => 'Motor & Vloeistoffen', 'label' => 'Oliefilter reinigen of vervangen'],
+            ['category' => 'Motor & Vloeistoffen', 'label' => 'Kleppen controleren en stellen (inlaat/uitlaat)'],
+            ['category' => 'Ontsteking & Lucht', 'label' => 'Bougie controleren/vervangen en elektrodeafstand checken'],
+            ['category' => 'Ontsteking & Lucht', 'label' => 'Luchtfilter reinigen of vervangen'],
+            ['category' => 'Transmissie (Aandrijving)', 'label' => 'V-snaar controleren op scheuren en slijtage'],
+            ['category' => 'Transmissie (Aandrijving)', 'label' => 'Variorollen en geleiders controleren/vervangen'],
+            ['category' => 'Transmissie (Aandrijving)', 'label' => 'Koppeling en koppelingshuis controleren'],
+            ['category' => 'Remmen & Banden', 'label' => 'Remvloeistof niveau/kleur controleren (bij schijfremmen)'],
+            ['category' => 'Remmen & Banden', 'label' => 'Remblokken of remschoenen op slijtage controleren'],
+            ['category' => 'Remmen & Banden', 'label' => 'Bandenspanning controleren (richtwaarde 2.0 - 2.5 bar)'],
+            ['category' => 'Remmen & Banden', 'label' => 'Profieldiepte en droogtescheuren controleren'],
+            ['category' => 'Elektronica & Algemeen', 'label' => 'Verlichting, remlicht, knipperlichten en claxon testen'],
+            ['category' => 'Elektronica & Algemeen', 'label' => 'Accu controleren (polen/corrosie/spanning rond 12.5V)'],
+            ['category' => 'Elektronica & Algemeen', 'label' => 'Scharnierpunten en kabels smeren'],
+        ];
+    }
+
+    private function warrantyStatusForScooter(Scooter $scooter): array
+    {
+        $document = is_array($scooter->warranty_document ?? null) ? $scooter->warranty_document : [];
+
+        $firstCheckupPlanned = (bool) ($document['first_checkup_planned'] ?? false);
+        $firstCheckupCompleted = (bool) ($document['first_checkup_completed'] ?? false);
+
+        $expiredByDate = false;
+        $deliveryDateRaw = (string) ($document['delivery_date'] ?? '');
+        if ($deliveryDateRaw !== '') {
+            try {
+                $deliveryDate = Carbon::parse($deliveryDateRaw)->startOfDay();
+                $dateLimit = $deliveryDate->copy()->addMonths(self::WARRANTY_MONTHS_LIMIT)->endOfDay();
+                $expiredByDate = now()->greaterThan($dateLimit);
+            } catch (\Throwable) {
+                $expiredByDate = false;
+            }
+        }
+
+        $expiredByKm = false;
+        $mileageAtDeliveryRaw = $document['mileage_at_delivery'] ?? null;
+        if ($mileageAtDeliveryRaw !== null && $scooter->mileage !== null) {
+            $mileageAtDelivery = (int) $mileageAtDeliveryRaw;
+            $kmLimit = $mileageAtDelivery + self::WARRANTY_KM_LIMIT;
+            $expiredByKm = (int) $scooter->mileage >= $kmLimit;
+        }
+
+        if ($firstCheckupCompleted) {
+            return [
+                'key' => 'checkup_done',
+                'label' => 'Nacontrole uitgevoerd',
+            ];
+        }
+
+        if ($expiredByDate || $expiredByKm) {
+            return [
+                'key' => 'expired',
+                'label' => 'Garantie verlopen',
+            ];
+        }
+
+        if ($firstCheckupPlanned) {
+            return [
+                'key' => 'checkup_planned',
+                'label' => 'Eerste nacontrole gepland',
+            ];
+        }
+
+        return [
+            'key' => 'active',
+            'label' => 'Garantie actief',
+        ];
+    }
+
     public function index(): Response
     {
         $scooters = Scooter::with(['brand', 'scooterModel', 'parts', 'photos'])
@@ -32,6 +128,7 @@ class ScooterController extends Controller
                 'echte_winst' => $s->actual_profit,
                 'ready_for_sale' => $s->ready_for_sale,
                 'foto' => $s->primaryPhoto()?->url,
+                'warranty_status' => $this->warrantyStatusForScooter($s),
             ]);
 
         return Inertia::render('admin/scooters/index', [
@@ -127,21 +224,23 @@ class ScooterController extends Controller
         }
 
         $productTemplates = ScooterPart::query()
-            ->select(['name', 'part_brand', 'specification', 'category', 'cost'])
+            ->select(['id', 'name', 'part_brand', 'specification', 'category', 'cost', 'quantity'])
+            ->whereNull('scooter_id')
+            ->where('procurement_status', 'binnen')
+            ->where('quantity', '>', 0)
             ->where('name', '!=', '')
+            ->orderBy('name')
             ->orderByDesc('id')
+            ->take(200)
             ->get()
-            ->unique(fn (ScooterPart $part) => mb_strtolower(
-                trim($part->name) . '|' . trim((string) $part->part_brand) . '|' . trim((string) $part->specification)
-            ))
-            ->take(120)
-            ->values()
             ->map(fn (ScooterPart $part) => [
+                'id' => $part->id,
                 'name' => $part->name,
                 'part_brand' => $part->part_brand,
                 'specification' => $part->specification,
                 'category' => $part->category,
                 'cost' => (float) $part->cost,
+                'stock_quantity' => (int) $part->quantity,
             ]);
 
         return Inertia::render('admin/scooters/edit', [
@@ -265,6 +364,249 @@ class ScooterController extends Controller
         }
 
         return back()->with('success', 'Scooter succesvol bijgewerkt!');
+    }
+
+    public function editWarranty(Scooter $scooter): Response
+    {
+        if (! request()->user()?->canManageScooters()) {
+            abort(403, 'Geen rechten om scooters te beheren.');
+        }
+
+        $placedParts = ScooterPart::query()
+            ->where('scooter_id', $scooter->id)
+            ->where('procurement_status', 'geplaatst')
+            ->orderByDesc('placed_at')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (ScooterPart $part) => [
+                'name' => $part->name,
+                'specification' => (string) ($part->specification ?? ''),
+                'quantity' => (int) $part->quantity,
+                'placed_at' => $part->placed_at?->format('Y-m-d'),
+            ])
+            ->values();
+
+        $document = $scooter->warranty_document ?? [];
+        $defaultLines = $this->defaultWarrantyInspectionLines();
+        $existingLines = is_array($document['inspection_lines'] ?? null) ? $document['inspection_lines'] : [];
+
+        $inspectionLines = [];
+        foreach ($defaultLines as $label) {
+            $matched = collect($existingLines)->first(fn ($line) => is_array($line) && ($line['label'] ?? '') === $label);
+            $inspectionLines[] = [
+                'label' => $label,
+                'checked' => (bool) ($matched['checked'] ?? false),
+                'note' => (string) ($matched['note'] ?? ''),
+            ];
+        }
+
+        foreach ($existingLines as $line) {
+            if (!is_array($line) || empty($line['label'])) {
+                continue;
+            }
+
+            $label = (string) $line['label'];
+            if (in_array($label, $defaultLines, true)) {
+                continue;
+            }
+
+            $inspectionLines[] = [
+                'label' => $label,
+                'checked' => (bool) ($line['checked'] ?? false),
+                'note' => (string) ($line['note'] ?? ''),
+            ];
+        }
+
+        return Inertia::render('admin/scooters/warranty', [
+            'scooter' => [
+                'id' => $scooter->id,
+                'naam' => $scooter->display_name,
+                'kenteken' => $scooter->kenteken,
+                'year' => $scooter->year,
+                'warranty_months' => $scooter->warranty_months,
+                'delivery_service_included' => (bool) $scooter->delivery_service_included,
+                'inspection_points' => $scooter->inspection_points,
+                'warranty_status' => $this->warrantyStatusForScooter($scooter),
+            ],
+            'document' => [
+                'certificate_title' => (string) ($document['certificate_title'] ?? 'Garantie & Service Controleblad'),
+                'customer_name' => (string) ($document['customer_name'] ?? ''),
+                'customer_phone' => (string) ($document['customer_phone'] ?? ''),
+                'customer_email' => (string) ($document['customer_email'] ?? ''),
+                'delivery_date' => (string) ($document['delivery_date'] ?? now()->toDateString()),
+                'mileage_at_delivery' => (string) ($document['mileage_at_delivery'] ?? (string) ($scooter->mileage ?? '')),
+                'free_checkup_included' => (bool) ($document['free_checkup_included'] ?? true),
+                'first_checkup_planned' => (bool) ($document['first_checkup_planned'] ?? false),
+                'first_checkup_completed' => (bool) ($document['first_checkup_completed'] ?? false),
+                'general_note' => (string) ($document['general_note'] ?? ''),
+                'inspection_lines' => $inspectionLines,
+            ],
+            'placed_parts' => $placedParts,
+        ]);
+    }
+
+    public function updateWarranty(Request $request, Scooter $scooter): RedirectResponse
+    {
+        if (! $request->user()?->canManageScooters()) {
+            abort(403, 'Geen rechten om scooters te beheren.');
+        }
+
+        $validated = $request->validate([
+            'certificate_title' => ['nullable', 'string', 'max:120'],
+            'customer_name' => ['nullable', 'string', 'max:190'],
+            'customer_phone' => ['nullable', 'string', 'max:50'],
+            'customer_email' => ['nullable', 'email', 'max:190'],
+            'delivery_date' => ['nullable', 'date'],
+            'mileage_at_delivery' => ['nullable', 'integer', 'min:0', 'max:500000'],
+            'free_checkup_included' => ['boolean'],
+            'first_checkup_planned' => ['boolean'],
+            'first_checkup_completed' => ['boolean'],
+            'general_note' => ['nullable', 'string', 'max:5000'],
+            'inspection_lines' => ['required', 'array', 'min:1', 'max:40'],
+            'inspection_lines.*.label' => ['required', 'string', 'max:120'],
+            'inspection_lines.*.checked' => ['boolean'],
+            'inspection_lines.*.note' => ['nullable', 'string', 'max:300'],
+        ]);
+
+        $inspectionLines = collect($validated['inspection_lines'])
+            ->map(fn (array $line) => [
+                'label' => trim((string) $line['label']),
+                'checked' => (bool) ($line['checked'] ?? false),
+                'note' => trim((string) ($line['note'] ?? '')),
+            ])
+            ->filter(fn (array $line) => $line['label'] !== '')
+            ->values()
+            ->all();
+
+        $scooter->update([
+            'warranty_document' => [
+                'certificate_title' => trim((string) ($validated['certificate_title'] ?? '')),
+                'customer_name' => trim((string) ($validated['customer_name'] ?? '')),
+                'customer_phone' => trim((string) ($validated['customer_phone'] ?? '')),
+                'customer_email' => trim((string) ($validated['customer_email'] ?? '')),
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'mileage_at_delivery' => isset($validated['mileage_at_delivery']) ? (int) $validated['mileage_at_delivery'] : null,
+                'free_checkup_included' => (bool) ($validated['free_checkup_included'] ?? false),
+                'first_checkup_planned' => (bool) ($validated['first_checkup_planned'] ?? false),
+                'first_checkup_completed' => (bool) ($validated['first_checkup_completed'] ?? false),
+                'general_note' => trim((string) ($validated['general_note'] ?? '')),
+                'inspection_lines' => $inspectionLines,
+            ],
+        ]);
+
+        return back()->with('success', 'Garantieblad opgeslagen. Je kunt nu printen of als PDF downloaden.');
+    }
+
+    public function editMaintenance(Scooter $scooter): Response
+    {
+        if (! request()->user()?->canManageScooters()) {
+            abort(403, 'Geen rechten om scooters te beheren.');
+        }
+
+        $document = $scooter->maintenance_document ?? [];
+        $defaultLines = $this->defaultMaintenanceInspectionLines();
+        $existingLines = is_array($document['inspection_lines'] ?? null) ? $document['inspection_lines'] : [];
+
+        $inspectionLines = [];
+        foreach ($defaultLines as $defaultLine) {
+            $matched = collect($existingLines)->first(function ($line) use ($defaultLine) {
+                if (! is_array($line)) {
+                    return false;
+                }
+
+                return ($line['label'] ?? '') === $defaultLine['label'];
+            });
+
+            $inspectionLines[] = [
+                'category' => (string) $defaultLine['category'],
+                'label' => (string) $defaultLine['label'],
+                'checked' => (bool) ($matched['checked'] ?? false),
+                'note' => (string) ($matched['note'] ?? ''),
+            ];
+        }
+
+        foreach ($existingLines as $line) {
+            if (! is_array($line) || empty($line['label'])) {
+                continue;
+            }
+
+            $label = (string) $line['label'];
+            $existsInDefaults = collect($defaultLines)->contains(fn (array $defaultLine) => $defaultLine['label'] === $label);
+
+            if ($existsInDefaults) {
+                continue;
+            }
+
+            $inspectionLines[] = [
+                'category' => trim((string) ($line['category'] ?? 'Overig')) ?: 'Overig',
+                'label' => $label,
+                'checked' => (bool) ($line['checked'] ?? false),
+                'note' => (string) ($line['note'] ?? ''),
+            ];
+        }
+
+        return Inertia::render('admin/scooters/maintenance', [
+            'scooter' => [
+                'id' => $scooter->id,
+                'naam' => $scooter->display_name,
+                'kenteken' => $scooter->kenteken,
+                'year' => $scooter->year,
+            ],
+            'document' => [
+                'certificate_title' => (string) ($document['certificate_title'] ?? 'Onderhoud & Service Checklist'),
+                'customer_name' => (string) ($document['customer_name'] ?? ''),
+                'performed_at' => (string) ($document['performed_at'] ?? now()->toDateString()),
+                'mileage_at_service' => (string) ($document['mileage_at_service'] ?? (string) ($scooter->mileage ?? '')),
+                'general_note' => (string) ($document['general_note'] ?? ''),
+                'last_completed_at' => (string) ($document['last_completed_at'] ?? ''),
+                'inspection_lines' => $inspectionLines,
+            ],
+        ]);
+    }
+
+    public function updateMaintenance(Request $request, Scooter $scooter): RedirectResponse
+    {
+        if (! $request->user()?->canManageScooters()) {
+            abort(403, 'Geen rechten om scooters te beheren.');
+        }
+
+        $validated = $request->validate([
+            'certificate_title' => ['nullable', 'string', 'max:120'],
+            'customer_name' => ['nullable', 'string', 'max:190'],
+            'performed_at' => ['nullable', 'date'],
+            'mileage_at_service' => ['nullable', 'integer', 'min:0', 'max:500000'],
+            'general_note' => ['nullable', 'string', 'max:5000'],
+            'inspection_lines' => ['required', 'array', 'min:1', 'max:80'],
+            'inspection_lines.*.category' => ['required', 'string', 'max:80'],
+            'inspection_lines.*.label' => ['required', 'string', 'max:180'],
+            'inspection_lines.*.checked' => ['boolean'],
+            'inspection_lines.*.note' => ['nullable', 'string', 'max:300'],
+        ]);
+
+        $inspectionLines = collect($validated['inspection_lines'])
+            ->map(fn (array $line) => [
+                'category' => trim((string) ($line['category'] ?? 'Overig')) ?: 'Overig',
+                'label' => trim((string) $line['label']),
+                'checked' => (bool) ($line['checked'] ?? false),
+                'note' => trim((string) ($line['note'] ?? '')),
+            ])
+            ->filter(fn (array $line) => $line['label'] !== '')
+            ->values()
+            ->all();
+
+        $scooter->update([
+            'maintenance_document' => [
+                'certificate_title' => trim((string) ($validated['certificate_title'] ?? '')),
+                'customer_name' => trim((string) ($validated['customer_name'] ?? '')),
+                'performed_at' => $validated['performed_at'] ?? null,
+                'mileage_at_service' => isset($validated['mileage_at_service']) ? (int) $validated['mileage_at_service'] : null,
+                'general_note' => trim((string) ($validated['general_note'] ?? '')),
+                'last_completed_at' => now()->toDateTimeString(),
+                'inspection_lines' => $inspectionLines,
+            ],
+        ]);
+
+        return back()->with('success', 'Onderhoudsformulier opgeslagen. Je kunt nu printen of als PDF downloaden.');
     }
 
     public function destroy(Scooter $scooter): RedirectResponse
