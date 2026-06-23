@@ -111,11 +111,17 @@ class ScooterPartController extends Controller
         $previousStatus = $part->procurement_status;
         $nextStatus = $validated['procurement_status'];
 
-        $part->update([
+        $payload = [
             'procurement_status' => $nextStatus,
             'purchased_at' => in_array($nextStatus, ['binnen', 'geplaatst'], true) ? ($part->purchased_at ?? now()->toDateString()) : $part->purchased_at,
             'placed_at' => $nextStatus === 'geplaatst' ? ($part->placed_at ?? now()->toDateString()) : null,
-        ]);
+        ];
+
+        if ($nextStatus === 'geplaatst' && (int) $part->quantity < 1) {
+            $payload['quantity'] = 1;
+        }
+
+        $part->update($payload);
 
         if ($previousStatus !== 'geplaatst' && $nextStatus === 'geplaatst') {
             $this->consumeFromInventory($part);

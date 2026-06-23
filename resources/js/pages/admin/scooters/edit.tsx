@@ -949,11 +949,9 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                                                             <div className="font-bold text-gray-900 text-sm">
                                                                 €{part.total_cost.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
                                                             </div>
-                                                            {part.quantity > 1 && (
-                                                                <div className="text-xs text-gray-400">
-                                                                    €{part.cost.toLocaleString('nl-NL', { minimumFractionDigits: 2 })} per stuk
-                                                                </div>
-                                                            )}
+                                                            <div className="text-xs text-gray-400">
+                                                                €{part.cost.toLocaleString('nl-NL', { minimumFractionDigits: 2 })} per stuk
+                                                            </div>
                                                         </div>
                                                         <button
                                                             onClick={() => handleDeletePart(part.id)}
