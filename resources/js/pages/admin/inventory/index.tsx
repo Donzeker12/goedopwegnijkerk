@@ -171,7 +171,25 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                 procurement_status: status,
                 scooter_id: current.scooter_id ? Number.parseInt(current.scooter_id, 10) : null,
             },
-            { preserveScroll: true }
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Update het item in parts zodat het verdwijnt als het status verandert
+                    setParts((prev) =>
+                        prev.map((p) =>
+                            p.id === partId ? { ...p, procurement_status: status } : p
+                        )
+                    );
+                    // Clean up edit state
+                    if (action !== 'save') {
+                        setEditByPart((prev) => {
+                            const updated = { ...prev };
+                            delete updated[partId];
+                            return updated;
+                        });
+                    }
+                },
+            }
         );
 
         if (action !== 'save') {
