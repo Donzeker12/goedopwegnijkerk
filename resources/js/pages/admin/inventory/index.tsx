@@ -159,14 +159,12 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
 
     function updatePart(partId: number, action: 'save' | 'besteld' | 'binnen' | 'geplaatst') {
         const current = editByPart[partId];
-        const part = parts.find(p => p.id === partId);
         const status = action === 'save' ? current.procurement_status : action;
 
-        // Wanneer we naar "geplaatst" gaan en het was in "binnen", trek de quantity af
+        // Wanneer we naar "geplaatst" gaan en het was in "binnen", trek 1 stuk af
         let newQuantity = Number.parseInt(current.quantity || '0', 10) || 0;
-        if (action === 'geplaatst' && part?.procurement_status === 'binnen' && newQuantity > 0) {
-            const requestedQty = part.requested_quantity || newQuantity;
-            newQuantity = Math.max(0, newQuantity - requestedQty);
+        if (action === 'geplaatst' && current.procurement_status === 'binnen' && newQuantity > 0) {
+            newQuantity = Math.max(0, newQuantity - 1);
         }
 
         router.patch(

@@ -17,7 +17,6 @@ class InventoryController extends Controller
     public function index(): Response
     {
         $parts = ScooterPart::with(['scooter.brand', 'scooter.scooterModel'])
-            ->where('procurement_status', '!=', 'geplaatst')
             ->orderByRaw('COALESCE(category, "Overig") asc')
             ->orderBy('name')
             ->get();
@@ -40,7 +39,7 @@ class InventoryController extends Controller
                 'unit_cost' => (float) $part->cost,
                 'total_value' => $stockValue,
                 'pending_value' => $pendingValue,
-                'low_stock' => $part->minimum_stock > 0 && $stockQuantity <= $part->minimum_stock,
+                'low_stock' => $isInStock && $part->minimum_stock > 0 && $stockQuantity <= $part->minimum_stock,
                 'scooter_id' => $part->scooter?->id,
                 'scooter_name' => $part->scooter?->display_name,
             ];
@@ -54,6 +53,9 @@ class InventoryController extends Controller
             'pending_needed_count' => $rows->where('procurement_status', 'nodig')->count(),
             'pending_ordered_count' => $rows->where('procurement_status', 'besteld')->count(),
             'pending_total_count' => $rows->whereIn('procurement_status', ['nodig', 'besteld'])->count(),
+            'pending_needed_units' => (int) $rows->where('procurement_status', 'nodig')->sum('requested_quantity'),
+            'pending_ordered_units' => (int) $rows->where('procurement_status', 'besteld')->sum('requested_quantity'),
+            'pending_total_units' => (int) $rows->whereIn('procurement_status', ['nodig', 'besteld'])->sum('requested_quantity'),
             'pending_needed_value' => (float) $rows->where('procurement_status', 'nodig')->sum('pending_value'),
             'pending_ordered_value' => (float) $rows->where('procurement_status', 'besteld')->sum('pending_value'),
             'pending_total_value' => (float) $rows->whereIn('procurement_status', ['nodig', 'besteld'])->sum('pending_value'),
@@ -78,6 +80,84 @@ class InventoryController extends Controller
             'installed_count' => ScooterPart::query()->where('procurement_status', 'geplaatst')->count('*'),
             'can_manage_finance' => (bool) request()->user()?->canManageFinance(),
         ]);
+    }
+
+    public function create(): Response
+    {
+        if (! request()->user()?->canManageFinance()) {
+            abort(403, 'Geen rechten om voorraad financieel te beheren.');
+        }
+
+        $scooters = Scooter::with(['brand', 'scooterModel'])
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Scooter $scooter) => [
+                'id' => $scooter->id,
+                'naam' => $scooter->display_name,
+            ]);
+
+        return Inertia::render('admin/inventory/create', [
+            'scooters' => $scooters,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        if (! $request->user()?->canManageFinance()) {
+            abort(403, 'Geen rechten om voorraad financieel te beheren.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'part_brand' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'quantity' => ['required', 'integer', 'min:0', 'max:999'],
+            'minimum_stock' => ['required', 'integer', 'min:0', 'max:999'],
+            'cost' => ['required', 'numeric', 'min:0'],
+            'procurement_status' => ['required', 'in:nodig,besteld,binnen,geplaatst'],
+            'scooter_id' => ['nullable', 'integer', 'exists:scooters,id'],
+        ]);
+
+        $part = ScooterPart::create([
+            'name' => $validated['name'],
+            'part_brand' => $validated['part_brand'] ?? null,
+            'category' => ($validated['category'] ?? null) === 'Overig' ? null : ($validated['category'] ?? null),
+            'quantity' => $validated['quantity'],
+            'minimum_stock' => $validated['minimum_stock'],
+            'cost' => $validated['cost'],
+            'procurement_status' => $validated['procurement_status'],
+            'scooter_id' => $validated['scooter_id'] ?? null,
+            'purchased_at' => in_array($validated['procurement_status'], ['binnen', 'geplaatst'], true)
+                ? now()->toDateString()
+                : null,
+            'placed_at' => $validated['procurement_status'] === 'geplaatst'
+                ? now()->toDateString()
+                : null,
+        ]);
+
+        if (
+            $part->scooter_id
+            && in_array($part->procurement_status, ['besteld', 'binnen', 'geplaatst'], true)
+            && $part->total_cost > 0
+        ) {
+            PurchaseEntry::create([
+                'scooter_id' => $part->scooter_id,
+                'scooter_part_id' => $part->id,
+                'category' => 'onderdeel',
+                'description' => 'Onderdeel: ' . $part->name,
+                'amount' => $part->total_cost,
+                'purchased_at' => $part->purchased_at?->format('Y-m-d') ?: now()->toDateString(),
+                'payment_status' => 'open',
+                'receipt_path' => $part->receipt_path,
+                'notes' => $part->notes,
+            ]);
+        }
+
+        if ($part->procurement_status === 'besteld') {
+            PartOrderNotifier::send($part, (string) optional($request->user())->name, 'Voorraad / Nieuw product');
+        }
+
+        return redirect()->route('admin.inventory.index')->with('success', 'Product toegevoegd aan voorraad.');
     }
 
     public function installed(): Response
@@ -127,19 +207,17 @@ class InventoryController extends Controller
         $previousStatus = $part->procurement_status;
         $nextStatus = $validated['procurement_status'];
         $nextScooterId = $validated['scooter_id'] ?? null;
-        $autoPlaced = false;
+        $nextQuantity = $validated['quantity'];
 
-        // If stock is marked as "binnen" and linked to a scooter, place it immediately.
-        if ($nextStatus === 'binnen' && $nextScooterId) {
-            $nextStatus = 'geplaatst';
-            $autoPlaced = true;
+        if ($previousStatus === 'binnen' && $nextStatus === 'geplaatst' && $nextQuantity === $part->quantity) {
+            $nextQuantity = max(0, $nextQuantity - 1);
         }
 
         $part->update([
             'name' => $validated['name'],
             'part_brand' => $validated['part_brand'] ?? null,
             'category' => $validated['category'] ?? null,
-            'quantity' => $validated['quantity'],
+            'quantity' => $nextQuantity,
             'minimum_stock' => $validated['minimum_stock'],
             'cost' => $validated['cost'],
             'procurement_status' => $nextStatus,
@@ -149,7 +227,7 @@ class InventoryController extends Controller
                 : $part->purchased_at,
             'placed_at' => $nextStatus === 'geplaatst'
                 ? ($part->placed_at ?? now()->toDateString())
-                : $part->placed_at,
+                : null,
         ]);
 
         if (
@@ -182,8 +260,19 @@ class InventoryController extends Controller
             PartOrderNotifier::send($part, (string) optional($request->user())->name, 'Voorraad / Finance');
         }
 
-        return back()->with('success', $autoPlaced
-            ? 'Onderdeel bijgewerkt en automatisch als geplaatst gemarkeerd.'
-            : 'Onderdeel bijgewerkt.');
+        return back()->with('success', 'Onderdeel bijgewerkt.');
+    }
+
+    public function destroyPart(Request $request, ScooterPart $part): RedirectResponse
+    {
+        if (! $request->user()?->canManageFinance()) {
+            abort(403, 'Geen rechten om voorraad financieel te beheren.');
+        }
+
+        PurchaseEntry::query()->where('scooter_part_id', $part->id)->delete();
+
+        $part->delete();
+
+        return back()->with('success', 'Product verwijderd uit voorraad.');
     }
 }
