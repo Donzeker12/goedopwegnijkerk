@@ -209,8 +209,12 @@ class InventoryController extends Controller
         $nextScooterId = $validated['scooter_id'] ?? null;
         $nextQuantity = $validated['quantity'];
 
-        if ($previousStatus === 'binnen' && $nextStatus === 'geplaatst' && $nextQuantity === $part->quantity) {
-            $nextQuantity = max(0, $nextQuantity - 1);
+        if ($previousStatus === 'binnen' && $nextStatus === 'geplaatst' && $nextQuantity === $part->quantity && $nextQuantity > 1) {
+            $nextQuantity = $nextQuantity - 1;
+        }
+
+        if ($nextStatus === 'geplaatst' && $nextQuantity < 1) {
+            $nextQuantity = 1;
         }
 
         $part->update([

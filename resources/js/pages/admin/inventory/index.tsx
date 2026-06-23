@@ -162,9 +162,14 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
         const status = action === 'save' ? current.procurement_status : action;
 
         // Wanneer we naar "geplaatst" gaan en het was in "binnen", trek 1 stuk af
+        // maar laat quantity nooit op 0 eindigen (anders wordt totaalprijs €0,00 op scooterpagina)
         let newQuantity = Number.parseInt(current.quantity || '0', 10) || 0;
-        if (action === 'geplaatst' && current.procurement_status === 'binnen' && newQuantity > 0) {
-            newQuantity = Math.max(0, newQuantity - 1);
+        if (action === 'geplaatst' && current.procurement_status === 'binnen' && newQuantity > 1) {
+            newQuantity = newQuantity - 1;
+        }
+
+        if (action === 'geplaatst' && newQuantity < 1) {
+            newQuantity = 1;
         }
 
         router.patch(
