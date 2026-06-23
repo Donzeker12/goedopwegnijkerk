@@ -751,6 +751,12 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                             <button type="submit" disabled={processing} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
                                 {processing ? 'Opslaan...' : 'Wijzigingen opslaan'}
                             </button>
+                            <Link href={`/admin/scooters/${scooter.id}/garantieblad`} className="bg-white border border-orange-300 hover:bg-orange-50 text-orange-700 font-semibold px-6 py-3 rounded-xl transition-colors">
+                                Garantie A4
+                            </Link>
+                            <Link href={`/admin/scooters/${scooter.id}/onderhoudsformulier`} className="bg-white border border-sky-300 hover:bg-sky-50 text-sky-700 font-semibold px-6 py-3 rounded-xl transition-colors">
+                                Onderhoud checklist
+                            </Link>
                             <Link href="/admin/scooters" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-6 py-3 rounded-xl transition-colors">
                                 Terug
                             </Link>
@@ -983,7 +989,10 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
                                     >
                                         <option value="">Kies bestaand product om velden te vullen...</option>
-                                        {product_templates.map((tpl, idx) => (
+                                        {[...product_templates]
+                                            .map((tpl, idx) => ({ tpl, idx }))
+                                            .sort((a, b) => a.tpl.name.localeCompare(b.tpl.name, 'nl'))
+                                            .map(({ tpl, idx }) => (
                                             <option key={`${tpl.name}-${tpl.part_brand ?? ''}-${tpl.specification ?? ''}-${idx}`} value={idx}>
                                                 {tpl.name}
                                                 {tpl.part_brand ? ` - ${tpl.part_brand}` : ''}
@@ -1384,7 +1393,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                     type="submit"
                     form="scooter-edit-form"
                     disabled={processing}
-                    className="fixed left-4 bottom-24 sm:bottom-6 z-70 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
+                    className="fixed left-4 bottom-16 sm:bottom-6 z-40 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
                 >
                     {processing ? 'Opslaan...' : 'Wijzigingen opslaan'}
                 </button>
@@ -1393,7 +1402,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
             <button
                 type="button"
                 onClick={jumpToQuickNeed}
-                className="fixed right-4 bottom-24 sm:bottom-6 z-70 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
+                className="fixed right-4 bottom-16 sm:bottom-6 z-40 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-3 rounded-full shadow-lg"
             >
                 + Nodig onderdeel
             </button>
