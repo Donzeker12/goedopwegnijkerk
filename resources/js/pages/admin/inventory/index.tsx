@@ -157,7 +157,15 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
 
     function updatePart(partId: number, action: 'save' | 'besteld' | 'binnen' | 'geplaatst') {
         const current = editByPart[partId];
+        const part = parts.find(p => p.id === partId);
         const status = action === 'save' ? current.procurement_status : action;
+
+        // Wanneer we naar "geplaatst" gaan en het was in "binnen", trek de quantity af
+        let newQuantity = Number.parseInt(current.quantity || '0', 10) || 0;
+        if (action === 'geplaatst' && part?.procurement_status === 'binnen' && newQuantity > 0) {
+            const requestedQty = part.requested_quantity || newQuantity;
+            newQuantity = Math.max(0, newQuantity - requestedQty);
+        }
 
         router.patch(
             `/admin/voorraad/onderdelen/${partId}`,
@@ -165,7 +173,7 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                 name: current.name,
                 part_brand: current.part_brand || null,
                 category: current.category === 'Overig' ? null : current.category || null,
-                quantity: Number.parseInt(current.quantity || '0', 10) || 0,
+                quantity: newQuantity,
                 minimum_stock: Number.parseInt(current.minimum_stock || '0', 10) || 0,
                 cost: parseDutchCurrency(current.cost || '0'),
                 procurement_status: status,
@@ -177,7 +185,7 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                     // Update het item in parts zodat het verdwijnt als het status verandert
                     setParts((prev) =>
                         prev.map((p) =>
-                            p.id === partId ? { ...p, procurement_status: status } : p
+                            p.id === partId ? { ...p, procurement_status: status, quantity: newQuantity } : p
                         )
                     );
                     // Clean up edit state
