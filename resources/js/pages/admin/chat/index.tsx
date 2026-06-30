@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import AdminLayout from '../../../layouts/AdminLayout';
 import SeoHead from '../../../components/SeoHead';
 
@@ -30,6 +31,12 @@ function formatDateTime(value: string | null): string {
         hour: '2-digit',
         minute: '2-digit',
     });
+}
+
+function deleteSession(id: number, name: string) {
+    if (confirm(`Weet je zeker dat je chat van "${name}" wilt verwijderen?`)) {
+        router.delete(`/admin/chat/${id}`);
+    }
 }
 
 export default function AdminChatIndex({ sessions, filters, auto_closed_count }: Props) {
@@ -116,6 +123,13 @@ export default function AdminChatIndex({ sessions, filters, auto_closed_count }:
                                             >
                                                 Open chat
                                             </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => deleteSession(session.id, session.name)}
+                                                className="ml-2 inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                            >
+                                                Verwijder
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

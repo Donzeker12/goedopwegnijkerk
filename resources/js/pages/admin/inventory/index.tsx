@@ -2,7 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../../layouts/AdminLayout';
 
-type InventoryTab = 'all' | 'besteld' | 'binnen' | 'geplaatst';
+type InventoryTab = 'all' | 'nodig' | 'besteld' | 'binnen' | 'geplaatst';
 const HIDDEN_PARTS_STORAGE_KEY = 'admin-inventory-hidden-parts';
 
 interface PartRow {
@@ -241,6 +241,7 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
     const tabCounts = useMemo(
         () => ({
             all: parts.length,
+            nodig: parts.filter((part) => part.procurement_status === 'nodig').length,
             besteld: parts.filter((part) => part.procurement_status === 'besteld').length,
             binnen: parts.filter((part) => part.procurement_status === 'binnen').length,
             geplaatst: parts.filter((part) => part.procurement_status === 'geplaatst').length,
@@ -273,6 +274,10 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
         const needle = searchFilter.trim().toLowerCase();
 
         return parts.filter((part) => {
+            if (activeTab === 'nodig' && part.procurement_status !== 'nodig') {
+                return false;
+            }
+
             if (activeTab === 'binnen' && part.procurement_status !== 'binnen') {
                 return false;
             }
@@ -404,6 +409,15 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                     </button>
                     <button
                         type="button"
+                        onClick={() => setActiveTab('nodig')}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                            activeTab === 'nodig' ? 'bg-rose-600 text-white' : 'border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                        }`}
+                    >
+                        Nodig ({tabCounts.nodig})
+                    </button>
+                    <button
+                        type="button"
                         onClick={() => setActiveTab('binnen')}
                         className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                             activeTab === 'binnen' ? 'bg-emerald-600 text-white' : 'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -501,6 +515,15 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                         <p className="text-xs text-gray-500">Geplaatste onderdelen staan op een aparte pagina.</p>
                     </div>
                     <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('nodig')}
+                            className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                                activeTab === 'nodig' ? 'bg-rose-600 text-white' : 'border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                            }`}
+                        >
+                            Nodig ({tabCounts.nodig})
+                        </button>
                         <button
                             type="button"
                             onClick={() => setActiveTab('binnen')}

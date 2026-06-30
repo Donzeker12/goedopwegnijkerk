@@ -151,6 +151,15 @@ class ChatController extends Controller
         return back()->with('success', 'Chatstatus bijgewerkt.');
     }
 
+    public function destroy(ChatSession $session): RedirectResponse
+    {
+        $session->delete();
+
+        return redirect()
+            ->route('admin.chat.index')
+            ->with('success', 'Chatgesprek verwijderd.');
+    }
+
     public function sendAppointmentConfirmation(Request $request, ChatSession $session): RedirectResponse
     {
         $validated = $request->validate([

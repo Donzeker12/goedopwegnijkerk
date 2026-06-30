@@ -61,6 +61,11 @@ export default function AdminStart({ summary, open_payments, active_chats, can_m
             <Head title="Admin Start" />
 
             <section className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                <Link href="/admin/blog" className="col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">Blog beheren</p>
+                    <p className="text-2xl font-black text-slate-900 mt-2">📰 Preview & bewerken</p>
+                    <p className="text-xs text-slate-600 mt-2">Open de bloglijst en kijk direct in preview.</p>
+                </Link>
                 <Link href="/admin/chat?status=nieuw" className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">Nieuwe chats</p>
                     <p className="text-3xl font-black text-orange-800 mt-2">{summary.new_chats_count}</p>

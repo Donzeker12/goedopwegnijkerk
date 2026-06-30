@@ -60,7 +60,7 @@ export default function Faq({ siteSettings }: Props) {
     const faqSchema = {
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: faqItems.map((item) => ({
+        mainEntity: faqItems.map((item, index) => ({
             '@type': 'Question',
             name: item.question,
             acceptedAnswer: {

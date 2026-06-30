@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Goed Op Weg Nijkerk';
 
-const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const canUseServiceWorker = 'serviceWorker' in navigator && (window.isSecureContext || isLocalhost);
+const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
+const isLocalhost = isBrowser ? ['localhost', '127.0.0.1'].includes(window.location.hostname) : false;
+const canUseServiceWorker = isBrowser && 'serviceWorker' in navigator && (window.isSecureContext || isLocalhost);
 
 if (canUseServiceWorker) {
     window.addEventListener('load', () => {
@@ -21,7 +22,11 @@ if (canUseServiceWorker) {
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     setup({ el, App, props }) {
-        createRoot(el!).render(<App {...props} />);
+        if (!el) {
+            return <App {...props} />;
+        }
+
+        createRoot(el).render(<App {...props} />);
     },
     progress: {
         color: '#f97316',

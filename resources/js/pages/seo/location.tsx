@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import ScooterGuaranteeBadge from '../../components/ScooterGuaranteeBadge';
 import AppLayout from '../../layouts/AppLayout';
 import SeoHead from '../../components/SeoHead';
 
@@ -167,6 +168,9 @@ export default function LocationLanding({ city, scooters, business }: Props) {
                                 </div>
                                 <div className="p-4">
                                     <h3 className="font-bold text-gray-900">{scooter.naam}</h3>
+                                    <div className="mt-2">
+                                        <ScooterGuaranteeBadge />
+                                    </div>
                                     <div className="mt-2 text-xs text-gray-500">
                                         {scooter.year ? `${scooter.year}` : ''}
                                         {scooter.mileage ? ` • ${scooter.mileage.toLocaleString('nl-NL')} km` : ''}

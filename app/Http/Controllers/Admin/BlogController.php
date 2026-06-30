@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BlogPhoto;
 use App\Models\BlogPost;
+use App\Models\Scooter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -34,9 +36,13 @@ class BlogController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('admin/blog/create');
+        $mode = $request->query('mode') === 'normal' ? 'normal' : 'quick';
+
+        return Inertia::render('admin/blog/create', [
+            'mode' => $mode,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -82,6 +88,30 @@ class BlogController extends Controller
                     'sort_order' => $photo->sort_order,
                 ]),
             ],
+        ]);
+    }
+
+    public function preview(BlogPost $post): Response
+    {
+        $post->load('photos');
+        $relatedScooters = $this->relatedScootersFor($post);
+
+        return Inertia::render('blog/show', [
+            'post' => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'excerpt' => $post->excerpt,
+                'content' => $post->content,
+                'published_at' => $post->published_at?->toDateString(),
+                'photos' => $post->photos->map(fn (BlogPhoto $photo) => [
+                    'id' => $photo->id,
+                    'url' => $photo->url,
+                    'is_cover' => $photo->is_cover,
+                ]),
+            ],
+            'related_scooters' => $relatedScooters,
+            'preview' => true,
         ]);
     }
 
@@ -152,6 +182,24 @@ class BlogController extends Controller
         return back()->with('success', 'Foto\'s geüpload.');
     }
 
+    public function uploadEditorImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'photo' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:20480'],
+        ], [
+            'photo.required' => 'Selecteer een afbeelding.',
+            'photo.image' => 'Bestand moet een afbeelding zijn.',
+            'photo.mimes' => 'Alleen jpeg, png, jpg en webp zijn toegestaan.',
+            'photo.max' => 'Foto mag maximaal 20MB zijn.',
+        ]);
+
+        $path = $request->file('photo')->store('blogs/inline', 'public');
+
+        return response()->json([
+            'url' => Storage::url($path),
+        ]);
+    }
+
     public function setCover(BlogPost $post, BlogPhoto $photo): RedirectResponse
     {
         if ($photo->blog_post_id !== $post->id) {
@@ -200,5 +248,48 @@ class BlogController extends Controller
         }
 
         return $slug;
+    }
+
+    /**
+     * @return array<int, array{id:int,naam:string,prijs:float,foto:string|null,year:int|null,mileage:int|null}>
+     */
+    private function relatedScootersFor(BlogPost $post): array
+    {
+        $contentForMatch = Str::lower(strip_tags(trim(implode(' ', [
+            $post->title,
+            $post->excerpt,
+            $post->content,
+        ]))));
+
+        $candidateScooters = Scooter::with(['brand', 'scooterModel', 'photos'])
+            ->where('ready_for_sale', true)
+            ->where('status', 'te_koop')
+            ->latest()
+            ->take(12)
+            ->get();
+
+        $relatedScooters = $candidateScooters
+            ->filter(function (Scooter $scooter) use ($contentForMatch) {
+                $brand = Str::lower($scooter->brand->name ?? '');
+                $model = Str::lower($scooter->scooterModel->name ?? '');
+
+                return ($brand !== '' && Str::contains($contentForMatch, $brand))
+                    || ($model !== '' && Str::contains($contentForMatch, $model));
+            })
+            ->take(3)
+            ->values();
+
+        if ($relatedScooters->isEmpty()) {
+            $relatedScooters = $candidateScooters->take(3)->values();
+        }
+
+        return $relatedScooters->map(fn (Scooter $scooter) => [
+            'id' => $scooter->id,
+            'naam' => $scooter->display_name,
+            'prijs' => (float) $scooter->expected_sale_price,
+            'foto' => $scooter->primaryPhoto()?->url,
+            'year' => $scooter->year,
+            'mileage' => $scooter->mileage,
+        ])->all();
     }
 }

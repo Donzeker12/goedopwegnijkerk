@@ -25,17 +25,25 @@ export default function InstalledInventoryIndex({ parts }: Props) {
         <AdminLayout title="Geplaatste onderdelen">
             <Head title="Geplaatste onderdelen" />
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-xl font-bold text-gray-900">Geplaatste onderdelen</h1>
                     <p className="text-sm text-gray-500">Alles wat al op een scooter is geplaatst.</p>
                 </div>
-                <Link
-                    href="/admin/voorraad"
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                    Terug naar voorraad
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                        href="/admin/voorraad/producten/nieuw"
+                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                    >
+                        + Product toevoegen
+                    </Link>
+                    <Link
+                        href="/admin/voorraad"
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                        Terug naar voorraad
+                    </Link>
+                </div>
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">

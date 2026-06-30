@@ -1,5 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
+import ScooterGuaranteeBadge from '../../components/ScooterGuaranteeBadge';
 import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
 
@@ -399,6 +400,7 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
                         <div className="text-4xl font-bold text-orange-500 mb-6">
                             €{scooter.prijs.toLocaleString('nl-NL', { minimumFractionDigits: 0 })}
                         </div>
+                        <ScooterGuaranteeBadge variant="block" className="mb-6" />
 
                         <p className="text-sm text-gray-600 mb-6 leading-relaxed">
                             {uniqueIntro}
@@ -717,6 +719,9 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
                                                 <div className="text-xs text-gray-500 mt-1">
                                                     {related.year ? `${related.year}` : ''}
                                                     {related.mileage ? ` • ${related.mileage.toLocaleString('nl-NL')} km` : ''}
+                                                    <div className="mt-2">
+                                                        <ScooterGuaranteeBadge />
+                                                    </div>
                                                 </div>
                                                 <div className="text-orange-600 font-bold mt-2">€{related.prijs.toLocaleString('nl-NL')}</div>
                                             </div>

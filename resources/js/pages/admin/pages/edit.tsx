@@ -93,6 +93,7 @@ export default function PageEdit({ page }: Props) {
                             value={data.content}
                             onChange={(html) => setData('content', html)}
                             placeholder="Schrijf hier je 'Over Ons' tekst. Gebruik de opmaakbalk voor titels, vet, cursief, enz."
+                            imageUploadUrl="/admin/blog/editor/afbeelding"
                         />
                     </div>
 

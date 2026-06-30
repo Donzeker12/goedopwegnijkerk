@@ -28,6 +28,8 @@ class Scooter extends Model
         'inspection_points',
         'review_score',
         'review_count',
+        'warranty_document',
+        'maintenance_document',
     ];
 
     protected $casts = [
@@ -38,6 +40,8 @@ class Scooter extends Model
         'ready_for_sale' => 'boolean',
         'delivery_service_included' => 'boolean',
         'review_score' => 'decimal:1',
+        'warranty_document' => 'array',
+        'maintenance_document' => 'array',
     ];
 
     public function brand(): BelongsTo

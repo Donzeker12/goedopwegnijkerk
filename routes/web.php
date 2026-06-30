@@ -104,6 +104,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/scooters', [ScooterController::class, 'store'])->name('scooters.store');
     Route::get('/scooters/{scooter}/bewerken', [ScooterController::class, 'edit'])->name('scooters.edit');
     Route::put('/scooters/{scooter}', [ScooterController::class, 'update'])->name('scooters.update');
+    Route::get('/scooters/{scooter}/garantieblad', [ScooterController::class, 'editWarranty'])->name('scooters.warranty.edit');
+    Route::put('/scooters/{scooter}/garantieblad', [ScooterController::class, 'updateWarranty'])->name('scooters.warranty.update');
+    Route::get('/scooters/{scooter}/onderhoudsformulier', [ScooterController::class, 'editMaintenance'])->name('scooters.maintenance.edit');
+    Route::put('/scooters/{scooter}/onderhoudsformulier', [ScooterController::class, 'updateMaintenance'])->name('scooters.maintenance.update');
     Route::delete('/scooters/{scooter}', [ScooterController::class, 'destroy'])->name('scooters.destroy');
 
     // Parts
@@ -128,9 +132,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/blog', [AdminBlogController::class, 'index'])->name('blog.index');
     Route::get('/blog/nieuw', [AdminBlogController::class, 'create'])->name('blog.create');
     Route::post('/blog', [AdminBlogController::class, 'store'])->name('blog.store');
+    Route::get('/blog/{post}/preview', [AdminBlogController::class, 'preview'])->name('blog.preview');
     Route::get('/blog/{post}/bewerken', [AdminBlogController::class, 'edit'])->name('blog.edit');
     Route::put('/blog/{post}', [AdminBlogController::class, 'update'])->name('blog.update');
     Route::delete('/blog/{post}', [AdminBlogController::class, 'destroy'])->name('blog.destroy');
+    Route::post('/blog/editor/afbeelding', [AdminBlogController::class, 'uploadEditorImage'])->name('blog.editor-image.store');
     Route::post('/blog/{post}/fotos', [AdminBlogController::class, 'uploadPhotos'])->name('blog.photos.store');
     Route::patch('/blog/{post}/fotos/{photo}/cover', [AdminBlogController::class, 'setCover'])->name('blog.photos.cover');
     Route::delete('/blog/{post}/fotos/{photo}', [AdminBlogController::class, 'destroyPhoto'])->name('blog.photos.destroy');
@@ -138,6 +144,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Chat
     Route::get('/chat', [AdminChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/{session}', [AdminChatController::class, 'show'])->name('chat.show');
+    Route::delete('/chat/{session}', [AdminChatController::class, 'destroy'])->name('chat.destroy');
     Route::post('/chat/{session}/bericht', [AdminChatController::class, 'storeMessage'])->name('chat.message.store');
     Route::post('/chat/{session}/afspraak-bevestigen', [AdminChatController::class, 'sendAppointmentConfirmation'])->name('chat.appointment.confirm');
     Route::patch('/chat/{session}/status', [AdminChatController::class, 'updateStatus'])->name('chat.status.update');
@@ -150,8 +157,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Inventory
     Route::get('/voorraad', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/voorraad/producten/nieuw', [InventoryController::class, 'create'])->name('inventory.create');
+    Route::post('/voorraad/producten', [InventoryController::class, 'store'])->name('inventory.store');
     Route::get('/voorraad/geplaatst', [InventoryController::class, 'installed'])->name('inventory.installed');
     Route::patch('/voorraad/onderdelen/{part}', [InventoryController::class, 'updatePart'])->name('inventory.parts.update');
+    Route::delete('/voorraad/onderdelen/{part}', [InventoryController::class, 'destroyPart'])->name('inventory.parts.destroy');
 
     // Page content editor
     Route::get('/paginas/{slug}', [PageContentController::class, 'edit'])->name('pages.edit');

@@ -37,12 +37,20 @@ export default function BlogAdminIndex({ posts }: Props) {
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <p className="text-sm text-gray-500">{posts.length} blog(s)</p>
-                    <Link
-                        href="/admin/blog/nieuw"
-                        className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
-                    >
-                        + Blog toevoegen
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                            href="/admin/blog/nieuw?mode=quick"
+                            className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+                        >
+                            + Snelle blog
+                        </Link>
+                        <Link
+                            href="/admin/blog/nieuw?mode=normal"
+                            className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+                        >
+                            + Normale blog
+                        </Link>
+                    </div>
                 </div>
 
                 {posts.length === 0 ? (
@@ -53,8 +61,8 @@ export default function BlogAdminIndex({ posts }: Props) {
                 ) : (
                     <div className="divide-y divide-gray-50">
                         {posts.map((post) => (
-                            <div key={post.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors">
-                                <div className="w-16 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                            <div key={post.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors">
+                                <div className="w-16 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0">
                                     {post.cover ? (
                                         <img src={post.cover} alt="" className="w-full h-full object-cover" />
                                     ) : (
@@ -62,24 +70,24 @@ export default function BlogAdminIndex({ posts }: Props) {
                                     )}
                                 </div>
 
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 w-full">
                                     <div className="font-semibold text-gray-900 truncate">{post.title}</div>
                                     <div className="text-xs text-gray-500 mt-0.5">/{post.slug}</div>
                                 </div>
 
-                                <div className="hidden sm:block text-right text-xs text-gray-500">
+                                <div className="text-left sm:text-right text-xs text-gray-500 w-full sm:w-auto">
                                     <div>
                                         {post.is_published ? 'Gepubliceerd' : 'Concept'}
                                     </div>
                                     <div>{post.published_at ?? post.created_at ?? ''}</div>
                                 </div>
 
-                                <div className="flex items-center gap-2 ml-4">
+                                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-4">
                                     <Link
-                                        href={`/blog/${post.slug}`}
+                                        href={`/admin/blog/${post.slug}/preview`}
                                         className="text-sm text-gray-400 hover:text-orange-500 transition-colors px-3 py-1.5 rounded-lg hover:bg-orange-50"
                                     >
-                                        Bekijken
+                                        Preview
                                     </Link>
                                     <Link
                                         href={`/admin/blog/${post.slug}/bewerken`}

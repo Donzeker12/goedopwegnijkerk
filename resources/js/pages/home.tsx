@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import ScooterGuaranteeBadge from '../components/ScooterGuaranteeBadge';
 import SeoHead from '../components/SeoHead';
 import AppLayout from '../layouts/AppLayout';
 import type { HomeCtaSettings, HomeFeaturedSettings, HomeHeroSettings, HomeInfoSettings, HomeQualitySettings } from '../types/site-settings';
@@ -213,6 +214,9 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                                             {scooter.year && <span>📅 {scooter.year}</span>}
                                             {scooter.mileage && <span>📏 {scooter.mileage.toLocaleString('nl-NL')} km</span>}
                                             {scooter.color && <span>🎨 {scooter.color}</span>}
+                                        </div>
+                                        <div className="mt-3">
+                                            <ScooterGuaranteeBadge />
                                         </div>
                                         <div className="mt-3 flex items-center justify-between">
                                             <span className="text-2xl font-bold text-orange-500">

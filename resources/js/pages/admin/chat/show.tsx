@@ -94,6 +94,12 @@ export default function AdminChatShow({ session, messages }: Props) {
         });
     }
 
+    function deleteChat() {
+        if (confirm(`Weet je zeker dat je chat van "${session.name}" wilt verwijderen?`)) {
+            router.delete(`/admin/chat/${session.id}`);
+        }
+    }
+
     return (
         <AdminLayout title={`Chat #${session.id}`}>
             <SeoHead title="Admin chat detail" description="Reageer op chatgesprek" path={`/admin/chat/${session.id}`} noindex />
@@ -146,6 +152,7 @@ export default function AdminChatShow({ session, messages }: Props) {
                     <div className="mt-5 pt-4 border-t border-gray-100 space-y-2">
                         <Link href="/admin/chat" className="inline-flex rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">← Terug naar inbox</Link>
                         <a href={publicChatLink} target="_blank" rel="noreferrer" className="inline-flex rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-black">Open publieke chatlink</a>
+                        <button type="button" onClick={deleteChat} className="inline-flex rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100">Verwijder chat</button>
                     </div>
 
                     <form onSubmit={sendAppointmentConfirmation} className="mt-5 pt-4 border-t border-gray-100 space-y-3">

@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import ScooterGuaranteeBadge from '../../components/ScooterGuaranteeBadge';
 import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
 import type { ShopHeroSettings, ShopInfoSettings } from '../../types/site-settings';
@@ -103,6 +104,7 @@ export default function ShopIndex({ scooters, siteSettings }: Props) {
                                             </span>
                                         )}
                                     </div>
+                                    <ScooterGuaranteeBadge />
                                     <div className="flex items-center justify-between border-t border-gray-100 pt-4">
                                         <span className="text-2xl font-bold text-orange-500">
                                             €{scooter.prijs.toLocaleString('nl-NL', { minimumFractionDigits: 0 })}

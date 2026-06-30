@@ -313,6 +313,11 @@ export default function AdminLayout({ children, title }: Props) {
         router.post('/logout');
     }
 
+    function handleMobileTabClick(href: string, active: boolean) {
+        if (active) return;
+        router.visit(href, { preserveScroll: true, preserveState: false });
+    }
+
     function renderSidebarContent(closeMenuOnNavigate: boolean) {
         return (
             <>
@@ -429,7 +434,7 @@ export default function AdminLayout({ children, title }: Props) {
                     <motion.button
                         type="button"
                         onClick={() => setMenuOpen(false)}
-                        className="lg:hidden fixed inset-0 bg-black/40 z-40"
+                        className="print:hidden lg:hidden fixed inset-0 bg-black/40 z-40"
                         aria-label="Sluit menu"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -439,7 +444,7 @@ export default function AdminLayout({ children, title }: Props) {
                 )}
             </AnimatePresence>
 
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 pt-safe-top">
+            <header className="print:hidden lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 pt-safe-top">
                 <div className="h-14 px-4 flex items-center justify-between">
                     <Link href="/admin" className="font-bold text-gray-900">Goed Op Weg Admin</Link>
                     <button
@@ -457,7 +462,7 @@ export default function AdminLayout({ children, title }: Props) {
             <AnimatePresence>
                 {menuOpen && (
                     <motion.aside
-                        className="lg:hidden w-56 bg-gray-900 text-white flex flex-col min-h-screen fixed top-0 left-0 z-50"
+                        className="print:hidden lg:hidden w-56 bg-gray-900 text-white flex flex-col min-h-screen fixed top-0 left-0 z-50"
                         initial={{ x: '-100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
@@ -469,35 +474,36 @@ export default function AdminLayout({ children, title }: Props) {
             </AnimatePresence>
 
             {/* Desktop sidebar */}
-            <aside className="hidden lg:flex w-56 bg-gray-900 text-white flex-col min-h-screen fixed top-0 left-0 z-30">
+            <aside className="print:hidden hidden lg:flex w-56 bg-gray-900 text-white flex-col min-h-screen fixed top-0 left-0 z-30">
                 {renderSidebarContent(false)}
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 lg:ml-56 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0">
+            <div className="flex-1 lg:ml-56 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0 print:ml-0 print:pt-0">
                 {title && (
-                    <div className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
+                    <div className="print:hidden bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
                         <h1 className="text-xl font-bold text-gray-900">{title}</h1>
                     </div>
                 )}
-                <div className="p-4 md:p-5 lg:p-6 pb-28 lg:pb-6">{children}</div>
+                <div className="p-4 md:p-5 lg:p-6 pb-28 lg:pb-6 print:p-0 print:pb-0">{children}</div>
             </div>
 
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80 pb-safe-bottom">
+            <nav className="print:hidden lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80 pb-safe-bottom">
                 <div className="grid grid-cols-4">
                     {mobileTabs.map((item) => {
                         const active = url === item.href || (item.href !== '/admin' && url.startsWith(item.href));
                         return (
-                            <Link
+                            <button
                                 key={item.href}
-                                href={item.href}
-                                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 text-[11px] font-medium transition-colors ${
+                                type="button"
+                                onClick={() => handleMobileTabClick(item.href, active)}
+                                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 text-[11px] font-medium transition-colors w-full ${
                                     active ? 'text-orange-600 bg-orange-50' : 'text-gray-500'
                                 }`}
                             >
                                 <span className="text-base leading-none">{item.icon}</span>
                                 <span className="leading-none">{item.label}</span>
-                            </Link>
+                            </button>
                         );
                     })}
                 </div>

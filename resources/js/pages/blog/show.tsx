@@ -1,5 +1,7 @@
 import { Link } from '@inertiajs/react';
+import ScooterGuaranteeBadge from '../../components/ScooterGuaranteeBadge';
 import SeoHead from '../../components/SeoHead';
+import AdminLayout from '../../layouts/AdminLayout';
 import AppLayout from '../../layouts/AppLayout';
 
 interface BlogPhoto {
@@ -30,9 +32,10 @@ interface RelatedScooter {
 interface Props {
     post: BlogPost;
     related_scooters: RelatedScooter[];
+    preview?: boolean;
 }
 
-export default function BlogShow({ post, related_scooters }: Props) {
+export default function BlogShow({ post, related_scooters, preview = false }: Props) {
     const cover = post.photos.find((photo) => photo.is_cover) ?? post.photos[0];
     const gallery = post.photos.filter((photo) => !cover || photo.id !== cover.id);
 
@@ -60,14 +63,15 @@ export default function BlogShow({ post, related_scooters }: Props) {
         return (import.meta.env.VITE_APP_URL as string || window.location.origin) + (p.startsWith('/') ? p : '/' + p);
     }
 
-    return (
-        <AppLayout>
+    const content = (
+        <>
             <SeoHead
                 title={post.title}
                 description={post.excerpt ?? 'Lees dit artikel op de blog van Goed Op Weg Nijkerk.'}
-                path={`/blog/${post.slug}`}
+                path={preview ? `/admin/blog/${post.slug}/preview` : `/blog/${post.slug}`}
                 type="article"
                 image={cover?.url}
+                noindex={preview}
                 breadcrumbs={[
                     { name: 'Home', url: '/' },
                     { name: 'Blog', url: '/blog' },
@@ -85,6 +89,28 @@ export default function BlogShow({ post, related_scooters }: Props) {
                         <span className="mx-2">/</span>
                         <span className="text-gray-900">{post.title}</span>
                     </nav>
+
+                    {preview && (
+                        <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-4 text-sm font-medium text-orange-800">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p>Previewmodus: dit is hoe de blog eruitziet op de website voordat je hem live zet.</p>
+                                <div className="flex flex-wrap gap-2">
+                                    <Link
+                                        href={`/admin/blog/${post.slug}/bewerken`}
+                                        className="inline-flex items-center rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-600"
+                                    >
+                                        Blog bijwerken
+                                    </Link>
+                                    <Link
+                                        href="/admin/blog"
+                                        className="inline-flex items-center rounded-lg border border-orange-200 bg-white px-3 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-50"
+                                    >
+                                        Terug naar overzicht
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <header className="mb-8">
                         <div className="text-xs uppercase tracking-wider text-orange-600 font-semibold mb-2">
@@ -150,6 +176,9 @@ export default function BlogShow({ post, related_scooters }: Props) {
                                         </div>
                                         <div className="p-3.5">
                                             <h3 className="font-semibold text-gray-900 text-sm leading-snug">{scooter.naam}</h3>
+                                            <div className="mt-2">
+                                                <ScooterGuaranteeBadge />
+                                            </div>
                                             <p className="text-xs text-gray-500 mt-1">
                                                 {scooter.year ? `${scooter.year}` : ''}
                                                 {scooter.mileage ? ` • ${scooter.mileage.toLocaleString('nl-NL')} km` : ''}
@@ -176,6 +205,12 @@ export default function BlogShow({ post, related_scooters }: Props) {
                 .blog-content img { max-width: 100%; border-radius: 0.75rem; margin: 1rem 0; }
                 .blog-content a { color: #ea580c; text-decoration: underline; }
             `}</style>
-        </AppLayout>
+        </>
     );
+
+    if (preview) {
+        return <AdminLayout title="Blog preview">{content}</AdminLayout>;
+    }
+
+    return <AppLayout>{content}</AppLayout>;
 }

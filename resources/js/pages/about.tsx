@@ -68,7 +68,7 @@ export default function About({ content, title }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         {[
                             { step: '01', title: 'Inspectie & Selectie', desc: 'Alleen scooters met een gezonde technische basis komen door de intake.', icon: 'Inspectie' },
-                            { step: '02', title: 'Reconstructie & Styling', desc: 'Blok en aandrijving worden gereviseerd, kappen strak gemaakt en opnieuw gespoten.', icon: 'Revisie' },
+                            { step: '02', title: 'Technische aanpak & Styling', desc: 'Elk blok en de aandrijving worden eerst gecontroleerd. Revisie gebeurt alleen waar nodig; kappen worden strak gemaakt en waar nodig opnieuw gespoten.', icon: 'Werkplaats' },
                             { step: '03', title: 'Rijklaar voor verkoop', desc: 'Pas online na eindcontrole, duidelijke prijs en volledig overzicht van het werk.', icon: 'Rijklaar' },
                         ].map((item, i) => (
                             <article
