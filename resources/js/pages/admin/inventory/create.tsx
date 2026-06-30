@@ -42,6 +42,10 @@ export default function InventoryCreate({ scooters }: Props) {
     function submit(e: FormEvent) {
         e.preventDefault();
 
+        if (!data.cost.trim() && data.procurement_status !== 'nodig') {
+            setData('procurement_status', 'nodig');
+        }
+
         post('/admin/voorraad/producten');
     }
 
@@ -57,12 +61,12 @@ export default function InventoryCreate({ scooters }: Props) {
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="sm:col-span-2">
-                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Productnaam *</label>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Productnaam</label>
                             <input
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                placeholder="Bijv. Bougie NGK C7HSA"
+                                placeholder="Bijv. Bougie NGK C7HSA (optioneel bij status Nodig)"
                             />
                             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
                         </div>
@@ -139,24 +143,43 @@ export default function InventoryCreate({ scooters }: Props) {
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Prijs per stuk (€) *</label>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Prijs per stuk (€)</label>
                             <input
                                 type="number"
                                 min="0"
                                 step="0.01"
                                 value={data.cost}
-                                onChange={(e) => setData('cost', e.target.value)}
+                                onChange={(e) => {
+                                    const nextCost = e.target.value;
+                                    setData('cost', nextCost);
+
+                                    if (!nextCost.trim() && data.procurement_status !== 'nodig') {
+                                        setData('procurement_status', 'nodig');
+                                    }
+                                }}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                placeholder="Bijv. 24.95"
+                                placeholder="Optioneel bij status Nodig"
                             />
                             {errors.cost && <p className="mt-1 text-xs text-red-600">{errors.cost}</p>}
+                            {!data.cost.trim() && (
+                                <p className="mt-1 text-xs text-amber-700">Geen prijs ingevuld: status wordt automatisch op Nodig gezet.</p>
+                            )}
                         </div>
 
                         <div>
                             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Status *</label>
                             <select
                                 value={data.procurement_status}
-                                onChange={(e) => setData('procurement_status', e.target.value as 'nodig' | 'besteld' | 'binnen' | 'geplaatst')}
+                                onChange={(e) => {
+                                    const nextStatus = e.target.value as 'nodig' | 'besteld' | 'binnen' | 'geplaatst';
+
+                                    if (!data.cost.trim() && nextStatus !== 'nodig') {
+                                        setData('procurement_status', 'nodig');
+                                        return;
+                                    }
+
+                                    setData('procurement_status', nextStatus);
+                                }}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             >
                                 <option value="nodig">Nodig</option>

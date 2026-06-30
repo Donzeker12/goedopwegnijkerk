@@ -97,9 +97,19 @@ const categoryOptions = [
 
 const supplierOptions = ['Kparts', 'Zandri', 'Scootershop'];
 
-function parseDutchCurrency(value: string): number {
-    const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '');
-    return Number.parseFloat(normalized || '0') || 0;
+function parseDutchCurrency(value: string): number | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const normalized = trimmed.replace(',', '.').replace(/[^0-9.]/g, '');
+    if (!normalized) {
+        return null;
+    }
+
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
 }
 
 export default function InventoryIndex({ parts, summary, scooters, installed_count, can_manage_finance }: Props) {
@@ -159,7 +169,8 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
 
     function updatePart(partId: number, action: 'save' | 'besteld' | 'binnen' | 'geplaatst') {
         const current = editByPart[partId];
-        const status = action === 'save' ? current.procurement_status : action;
+        const computedStatus = action === 'save' ? current.procurement_status : action;
+        const status = !current.cost.trim() && computedStatus !== 'nodig' ? 'nodig' : computedStatus;
 
         // Wanneer we naar "geplaatst" gaan en het was in "binnen", trek 1 stuk af
         // maar laat quantity nooit op 0 eindigen (anders wordt totaalprijs €0,00 op scooterpagina)
@@ -205,7 +216,7 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
             }
         );
 
-        if (action !== 'save') {
+        if (action !== 'save' || status !== current.procurement_status) {
             setPartField(partId, 'procurement_status', status);
         }
     }
@@ -690,7 +701,14 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                                                         type="text"
                                                         inputMode="decimal"
                                                         value={editByPart[part.id].cost}
-                                                        onChange={(e) => setPartField(part.id, 'cost', e.target.value)}
+                                                        onChange={(e) => {
+                                                            const nextCost = e.target.value;
+                                                            setPartField(part.id, 'cost', nextCost);
+
+                                                            if (!nextCost.trim() && editByPart[part.id].procurement_status !== 'nodig') {
+                                                                setPartField(part.id, 'procurement_status', 'nodig');
+                                                            }
+                                                        }}
                                                         className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                                                         placeholder="Bijv. 24,95"
                                                     />
@@ -917,7 +935,14 @@ export default function InventoryIndex({ parts, summary, scooters, installed_cou
                                                                 type="text"
                                                                 inputMode="decimal"
                                                                 value={selectedDraft.cost}
-                                                                onChange={(e) => setPartField(selectedPart.id, 'cost', e.target.value)}
+                                                                onChange={(e) => {
+                                                                    const nextCost = e.target.value;
+                                                                    setPartField(selectedPart.id, 'cost', nextCost);
+
+                                                                    if (!nextCost.trim() && selectedDraft.procurement_status !== 'nodig') {
+                                                                        setPartField(selectedPart.id, 'procurement_status', 'nodig');
+                                                                    }
+                                                                }}
                                                                 className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                                                             />
                                                         </div>

@@ -108,23 +108,45 @@ class InventoryController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'part_brand' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'string', 'max:100'],
             'quantity' => ['required', 'integer', 'min:0', 'max:999'],
             'minimum_stock' => ['required', 'integer', 'min:0', 'max:999'],
-            'cost' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
             'procurement_status' => ['required', 'in:nodig,besteld,binnen,geplaatst'],
             'scooter_id' => ['nullable', 'integer', 'exists:scooters,id'],
         ]);
 
+        $requiresPartDetails = in_array($validated['procurement_status'], ['besteld', 'binnen', 'geplaatst'], true);
+
+        $name = trim((string) ($validated['name'] ?? ''));
+        if ($requiresPartDetails && $name === '') {
+            return back()->withErrors([
+                'name' => 'Productnaam is verplicht bij status besteld, binnen of geplaatst.',
+            ])->withInput();
+        }
+
+        if ($name === '') {
+            $name = 'Nog te bepalen';
+        }
+
+        $cost = $validated['cost'] ?? null;
+        if ($requiresPartDetails && $cost === null) {
+            return back()->withErrors([
+                'cost' => 'Prijs is verplicht bij status besteld, binnen of geplaatst.',
+            ])->withInput();
+        }
+
+        $normalizedCost = $cost !== null ? (float) $cost : 0.0;
+
         $part = ScooterPart::create([
-            'name' => $validated['name'],
+            'name' => $name,
             'part_brand' => $validated['part_brand'] ?? null,
             'category' => ($validated['category'] ?? null) === 'Overig' ? null : ($validated['category'] ?? null),
             'quantity' => $validated['quantity'],
             'minimum_stock' => $validated['minimum_stock'],
-            'cost' => $validated['cost'],
+            'cost' => $normalizedCost,
             'procurement_status' => $validated['procurement_status'],
             'scooter_id' => $validated['scooter_id'] ?? null,
             'purchased_at' => in_array($validated['procurement_status'], ['binnen', 'geplaatst'], true)
@@ -194,12 +216,12 @@ class InventoryController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'part_brand' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'string', 'max:100'],
             'quantity' => ['required', 'integer', 'min:0', 'max:999'],
             'minimum_stock' => ['required', 'integer', 'min:0', 'max:999'],
-            'cost' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
             'procurement_status' => ['required', 'in:nodig,besteld,binnen,geplaatst'],
             'scooter_id' => ['nullable', 'integer', 'exists:scooters,id'],
         ]);
@@ -208,6 +230,27 @@ class InventoryController extends Controller
         $nextStatus = $validated['procurement_status'];
         $nextScooterId = $validated['scooter_id'] ?? null;
         $nextQuantity = $validated['quantity'];
+
+        $requiresPartDetails = in_array($nextStatus, ['besteld', 'binnen', 'geplaatst'], true);
+        $nextName = trim((string) ($validated['name'] ?? ''));
+        if ($requiresPartDetails && $nextName === '') {
+            return back()->withErrors([
+                'name' => 'Productnaam is verplicht bij status besteld, binnen of geplaatst.',
+            ])->withInput();
+        }
+
+        if ($nextName === '') {
+            $nextName = 'Nog te bepalen';
+        }
+
+        $nextCostRaw = $validated['cost'] ?? null;
+        if ($requiresPartDetails && $nextCostRaw === null) {
+            return back()->withErrors([
+                'cost' => 'Prijs is verplicht bij status besteld, binnen of geplaatst.',
+            ])->withInput();
+        }
+
+        $nextCost = $nextCostRaw !== null ? (float) $nextCostRaw : 0.0;
 
         if ($previousStatus === 'binnen' && $nextStatus === 'geplaatst' && $nextQuantity === $part->quantity && $nextQuantity > 1) {
             $nextQuantity = $nextQuantity - 1;
@@ -218,12 +261,12 @@ class InventoryController extends Controller
         }
 
         $part->update([
-            'name' => $validated['name'],
+            'name' => $nextName,
             'part_brand' => $validated['part_brand'] ?? null,
             'category' => $validated['category'] ?? null,
             'quantity' => $nextQuantity,
             'minimum_stock' => $validated['minimum_stock'],
-            'cost' => $validated['cost'],
+            'cost' => $nextCost,
             'procurement_status' => $nextStatus,
             'scooter_id' => $nextScooterId,
             'purchased_at' => in_array($nextStatus, ['binnen', 'geplaatst'], true)
