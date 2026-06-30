@@ -29,6 +29,7 @@ interface PriceSource {
 interface PriceResearchResponse {
     configured: boolean;
     scooter: string;
+    cached_hours?: number;
     queries: {
         new_price: string;
         market: string;
@@ -1288,8 +1289,10 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                         {showPriceResearch && (
                             <div className="mt-4 space-y-3">
                                 <p className="text-xs text-gray-500">
-                                    Haalt online signalen op voor nieuwprijs en tweedehands vraagprijzen, zodat je snel een realistische prijsklasse ziet.
+                                    Haalt online signalen op via Google voor nieuwprijs en tweedehands vraagprijzen, zodat je snel een realistische prijsklasse ziet.
                                 </p>
+
+                                <p className="text-[11px] text-gray-400">Resultaten worden 24 uur gecached om API-verbruik laag te houden.</p>
 
                                 <button
                                     type="button"
@@ -1303,8 +1306,8 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                                 {priceResearchError && (
                                     <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl space-y-1">
                                         <p className="font-semibold">⚠️ {priceResearchError}</p>
-                                        {priceResearchError.includes('SERPAPI_API_KEY') && (
-                                            <p className="text-red-500">Voeg SERPAPI_API_KEY toe aan het .env bestand op server en lokaal.</p>
+                                        {priceResearchError.includes('GOOGLE_API_KEY') && (
+                                            <p className="text-red-500">Voeg GOOGLE_API_KEY en GOOGLE_SEARCH_ENGINE_ID toe aan het .env bestand op server en lokaal.</p>
                                         )}
                                     </div>
                                 )}

@@ -5,17 +5,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Scooter;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class ScooterPriceResearchController extends Controller
 {
-    public function estimate(Scooter $scooter): JsonResponse
+    public function estimate(Request $request, Scooter $scooter): JsonResponse
     {
-        $apiKey = (string) config('services.serpapi.api_key');
+        $apiKey = (string) config('services.google.api_key');
+        $engineId = (string) config('services.google.search_engine_id');
 
-        if ($apiKey === '') {
+        if ($apiKey === '' || $engineId === '') {
             return response()->json([
-                'error' => 'SerpAPI sleutel ontbreekt. Voeg SERPAPI_API_KEY toe aan je .env bestand.',
+                'error' => 'Google API sleutels ontbreken. Voeg GOOGLE_API_KEY en GOOGLE_SEARCH_ENGINE_ID toe aan je .env bestand.',
                 'configured' => false,
             ], 503);
         }
@@ -27,12 +30,28 @@ class ScooterPriceResearchController extends Controller
             $baseName = (string) $scooter->display_name;
         }
 
-        $newPriceQuery = $baseName . ' scooter nieuwprijs';
-        $marketQuery = $baseName . ' scooter tweedehands marktplaats';
+        $newPriceQuery = $baseName . ' scooter nieuwprijs nederland';
+        $marketQuery = $baseName . ' scooter tweedehands marktplaats vraagprijs';
+
+        $refresh = (bool) $request->boolean('refresh');
+        $cacheTtl = now()->addDay();
 
         try {
-            $newPayload = $this->searchSerpApi($newPriceQuery, $apiKey);
-            $marketPayload = $this->searchSerpApi($marketQuery, $apiKey);
+            $newCacheKey = 'scooter-price-research:new:' . $scooter->id;
+            $marketCacheKey = 'scooter-price-research:market:' . $scooter->id;
+
+            if ($refresh) {
+                Cache::forget($newCacheKey);
+                Cache::forget($marketCacheKey);
+            }
+
+            $newPayload = Cache::remember($newCacheKey, $cacheTtl, function () use ($newPriceQuery, $apiKey, $engineId) {
+                return $this->searchGoogleWeb($newPriceQuery, $apiKey, $engineId);
+            });
+
+            $marketPayload = Cache::remember($marketCacheKey, $cacheTtl, function () use ($marketQuery, $apiKey, $engineId) {
+                return $this->searchGoogleWeb($marketQuery, $apiKey, $engineId);
+            });
 
             $newPrices = $this->extractPrices($newPayload);
             $marketPrices = $this->extractPrices($marketPayload);
@@ -46,6 +65,7 @@ class ScooterPriceResearchController extends Controller
                     'new_price' => $newPriceQuery,
                     'market' => $marketQuery,
                 ],
+                'cached_hours' => 24,
                 'new_price' => [
                     'count' => count($newPrices),
                     'summary' => $this->summarizePrices($newPrices),
@@ -75,20 +95,22 @@ class ScooterPriceResearchController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function searchSerpApi(string $query, string $apiKey): array
+    private function searchGoogleWeb(string $query, string $apiKey, string $engineId): array
     {
-        $response = Http::timeout(15)->get('https://serpapi.com/search.json', [
-            'engine' => 'google',
-            'google_domain' => 'google.nl',
+        $response = Http::timeout(15)->get('https://www.googleapis.com/customsearch/v1', [
+            'key' => $apiKey,
+            'cx' => $engineId,
             'hl' => 'nl',
             'gl' => 'nl',
-            'num' => 20,
+            'num' => 10,
             'q' => $query,
-            'api_key' => $apiKey,
+            'safe' => 'active',
         ]);
 
         if (! $response->ok()) {
-            throw new \RuntimeException('Externe zoekdienst gaf status ' . $response->status());
+            $googleError = (string) ($response->json('error.message') ?? '');
+            $suffix = $googleError !== '' ? ' - ' . $googleError : '';
+            throw new \RuntimeException('Google zoekdienst gaf status ' . $response->status() . $suffix);
         }
 
         $payload = $response->json();
@@ -107,22 +129,6 @@ class ScooterPriceResearchController extends Controller
     {
         $values = [];
 
-        foreach ((array) ($payload['shopping_results'] ?? []) as $item) {
-            $price = is_array($item) ? ($item['price'] ?? null) : null;
-            $parsed = $this->parseEuroAmount(is_scalar($price) ? (string) $price : null);
-            if ($parsed !== null) {
-                $values[] = $parsed;
-            }
-        }
-
-        foreach ((array) ($payload['inline_shopping_results'] ?? []) as $item) {
-            $price = is_array($item) ? ($item['price'] ?? null) : null;
-            $parsed = $this->parseEuroAmount(is_scalar($price) ? (string) $price : null);
-            if ($parsed !== null) {
-                $values[] = $parsed;
-            }
-        }
-
         foreach ((array) ($payload['organic_results'] ?? []) as $item) {
             if (! is_array($item)) {
                 continue;
@@ -131,8 +137,11 @@ class ScooterPriceResearchController extends Controller
             $text = implode(' ', array_filter([
                 is_scalar($item['title'] ?? null) ? (string) $item['title'] : '',
                 is_scalar($item['snippet'] ?? null) ? (string) $item['snippet'] : '',
-                is_scalar($item['rich_snippet']['top']['detected_extensions'][0]['value'] ?? null)
-                    ? (string) $item['rich_snippet']['top']['detected_extensions'][0]['value']
+                is_scalar($item['pagemap']['metatags'][0]['product:price:amount'] ?? null)
+                    ? (string) $item['pagemap']['metatags'][0]['product:price:amount']
+                    : '',
+                is_scalar($item['pagemap']['metatags'][0]['og:price:amount'] ?? null)
+                    ? (string) $item['pagemap']['metatags'][0]['og:price:amount']
                     : '',
             ]));
 
