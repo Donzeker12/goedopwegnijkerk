@@ -327,11 +327,12 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
         }
     }
 
-    async function fetchPriceResearch() {
+    async function fetchPriceResearch(forceRefresh = false) {
         setPriceResearchLoading(true);
         setPriceResearchError(null);
         try {
-            const res = await fetch(`/admin/scooters/${scooter.id}/prijsindicatie`, {
+            const query = forceRefresh ? '?refresh=1' : '';
+            const res = await fetch(`/admin/scooters/${scooter.id}/prijsindicatie${query}`, {
                 credentials: 'include',
                 headers: { Accept: 'application/json' },
             });
@@ -1294,14 +1295,24 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
 
                                 <p className="text-[11px] text-gray-400">Resultaten worden 24 uur gecached om API-verbruik laag te houden.</p>
 
-                                <button
-                                    type="button"
-                                    onClick={fetchPriceResearch}
-                                    disabled={priceResearchLoading}
-                                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
-                                >
-                                    {priceResearchLoading ? 'Prijsdata ophalen...' : 'Prijsindicatie ophalen'}
-                                </button>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => fetchPriceResearch(false)}
+                                        disabled={priceResearchLoading}
+                                        className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                                    >
+                                        {priceResearchLoading ? 'Prijsdata ophalen...' : 'Prijsindicatie ophalen'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => fetchPriceResearch(true)}
+                                        disabled={priceResearchLoading}
+                                        className="w-full border border-orange-300 bg-white hover:bg-orange-50 disabled:opacity-50 text-orange-700 text-sm font-medium py-2.5 rounded-xl transition-colors"
+                                    >
+                                        Ververs nu
+                                    </button>
+                                </div>
 
                                 {priceResearchError && (
                                     <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl space-y-1">
