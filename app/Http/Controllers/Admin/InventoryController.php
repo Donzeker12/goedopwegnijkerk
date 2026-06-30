@@ -291,7 +291,6 @@ class InventoryController extends Controller
                 'description' => 'Onderdeel: ' . $part->name,
                 'amount' => $part->total_cost,
                 'purchased_at' => $part->purchased_at?->format('Y-m-d') ?: now()->toDateString(),
-                'payment_status' => 'open',
                 'receipt_path' => $part->receipt_path,
                 'notes' => $part->notes,
             ];
@@ -299,7 +298,10 @@ class InventoryController extends Controller
             if ($entry) {
                 $entry->update($payload);
             } else {
-                PurchaseEntry::create($payload);
+                PurchaseEntry::create([
+                    ...$payload,
+                    'payment_status' => 'open',
+                ]);
             }
         }
 
