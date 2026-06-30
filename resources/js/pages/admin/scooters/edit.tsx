@@ -754,17 +754,17 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                             )}
                         </div>
 
-                        <div className="flex gap-3">
-                            <button type="submit" disabled={processing} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+                        <div className="flex flex-wrap gap-3">
+                            <button type="submit" disabled={processing} className="w-full sm:w-auto text-center bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
                                 {processing ? 'Opslaan...' : 'Wijzigingen opslaan'}
                             </button>
-                            <Link href={`/admin/scooters/${scooter.id}/garantieblad`} className="bg-white border border-orange-300 hover:bg-orange-50 text-orange-700 font-semibold px-6 py-3 rounded-xl transition-colors">
+                            <Link href={`/admin/scooters/${scooter.id}/garantieblad`} className="w-full sm:w-auto text-center bg-white border border-orange-300 hover:bg-orange-50 text-orange-700 font-semibold px-6 py-3 rounded-xl transition-colors">
                                 Garantie A4
                             </Link>
-                            <Link href={`/admin/scooters/${scooter.id}/onderhoudsformulier`} className="bg-white border border-sky-300 hover:bg-sky-50 text-sky-700 font-semibold px-6 py-3 rounded-xl transition-colors">
+                            <Link href={`/admin/scooters/${scooter.id}/onderhoudsformulier`} className="w-full sm:w-auto text-center bg-white border border-sky-300 hover:bg-sky-50 text-sky-700 font-semibold px-6 py-3 rounded-xl transition-colors">
                                 Onderhoud checklist
                             </Link>
-                            <Link href="/admin/scooters" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-6 py-3 rounded-xl transition-colors">
+                            <Link href="/admin/scooters" className="w-full sm:w-auto text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-6 py-3 rounded-xl transition-colors">
                                 Terug
                             </Link>
                         </div>
@@ -915,7 +915,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <div className="flex items-center gap-2 mt-2">
+                                                            <div className="flex flex-wrap items-center gap-2 mt-2">
                                                                 {part.procurement_status === 'nodig' && (
                                                                     <button
                                                                         type="button"
