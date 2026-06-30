@@ -11,6 +11,46 @@ interface GoogleImage {
     source: string;
 }
 
+interface PriceSummary {
+    min: number;
+    max: number;
+    average: number;
+    median: number;
+    p25: number;
+    p75: number;
+}
+
+interface PriceSource {
+    title: string;
+    link: string;
+    snippet: string;
+}
+
+interface PriceResearchResponse {
+    configured: boolean;
+    scooter: string;
+    queries: {
+        new_price: string;
+        market: string;
+    };
+    new_price: {
+        count: number;
+        summary: PriceSummary | null;
+        sources: PriceSource[];
+    };
+    market: {
+        count: number;
+        summary: PriceSummary | null;
+        sources: PriceSource[];
+    };
+    suggested_price_range: {
+        low: number;
+        high: number;
+        median: number;
+    } | null;
+    error?: string;
+}
+
 interface Part {
     id: number;
     name: string;
@@ -169,6 +209,10 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
     const [googleError, setGoogleError] = useState<string | null>(null);
     const [googleQuery, setGoogleQuery] = useState<string | null>(null);
     const [showGoogleSearch, setShowGoogleSearch] = useState(false);
+    const [showPriceResearch, setShowPriceResearch] = useState(false);
+    const [priceResearchLoading, setPriceResearchLoading] = useState(false);
+    const [priceResearchError, setPriceResearchError] = useState<string | null>(null);
+    const [priceResearch, setPriceResearch] = useState<PriceResearchResponse | null>(null);
 
     const selectedBrand = localBrands.find((b) => String(b.id) === data.brand_id);
     const availableModels = selectedBrand?.scooter_models ?? [];
@@ -180,6 +224,10 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
         const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '');
 
         return Number.parseFloat(normalized || '0') || 0;
+    }
+
+    function formatEuro(value: number): string {
+        return `€${value.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
     function applyProductTemplate(rawKey: string) {
@@ -275,6 +323,32 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
             setGoogleError('Verbinding mislukt.');
         } finally {
             setGoogleSearching(false);
+        }
+    }
+
+    async function fetchPriceResearch() {
+        setPriceResearchLoading(true);
+        setPriceResearchError(null);
+        try {
+            const res = await fetch(`/admin/scooters/${scooter.id}/prijsindicatie`, {
+                credentials: 'include',
+                headers: { Accept: 'application/json' },
+            });
+
+            const json = (await res.json()) as PriceResearchResponse;
+
+            if (!res.ok || json.error) {
+                setPriceResearchError(json.error ?? 'Prijsindicatie ophalen mislukt.');
+                setPriceResearch(null);
+                return;
+            }
+
+            setPriceResearch(json);
+        } catch {
+            setPriceResearchError('Verbinding mislukt tijdens prijsindicatie ophalen.');
+            setPriceResearch(null);
+        } finally {
+            setPriceResearchLoading(false);
         }
     }
 
@@ -1198,6 +1272,111 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
 
                 {/* Right: Photos */}
                 <div className="space-y-6">
+                    <div className="bg-white rounded-2xl shadow-sm p-5">
+                        <button
+                            type="button"
+                            onClick={() => setShowPriceResearch((v) => !v)}
+                            className="w-full flex items-center justify-between text-sm font-medium text-gray-700 hover:text-gray-900"
+                        >
+                            <span className="flex items-center gap-2">
+                                <span>📊</span>
+                                <span>Online prijsindicatie (beta)</span>
+                            </span>
+                            <span className="text-gray-400 text-xs">{showPriceResearch ? '▲' : '▼'}</span>
+                        </button>
+
+                        {showPriceResearch && (
+                            <div className="mt-4 space-y-3">
+                                <p className="text-xs text-gray-500">
+                                    Haalt online signalen op voor nieuwprijs en tweedehands vraagprijzen, zodat je snel een realistische prijsklasse ziet.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={fetchPriceResearch}
+                                    disabled={priceResearchLoading}
+                                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                                >
+                                    {priceResearchLoading ? 'Prijsdata ophalen...' : 'Prijsindicatie ophalen'}
+                                </button>
+
+                                {priceResearchError && (
+                                    <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl space-y-1">
+                                        <p className="font-semibold">⚠️ {priceResearchError}</p>
+                                        {priceResearchError.includes('SERPAPI_API_KEY') && (
+                                            <p className="text-red-500">Voeg SERPAPI_API_KEY toe aan het .env bestand op server en lokaal.</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {priceResearch && (
+                                    <div className="space-y-3">
+                                        {priceResearch.suggested_price_range && (
+                                            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                                                <div className="text-xs text-emerald-700">Advies verwachte prijsklasse</div>
+                                                <div className="text-sm font-bold text-emerald-800 mt-1">
+                                                    {formatEuro(priceResearch.suggested_price_range.low)} - {formatEuro(priceResearch.suggested_price_range.high)}
+                                                </div>
+                                                <div className="text-xs text-emerald-700 mt-1">
+                                                    Mediaan markt: {formatEuro(priceResearch.suggested_price_range.median)}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <div className="rounded-xl border border-gray-200 p-3">
+                                                <div className="text-xs text-gray-500">Nieuwprijs signalen</div>
+                                                <div className="text-sm font-semibold text-gray-900 mt-1">
+                                                    {priceResearch.new_price.summary
+                                                        ? `${formatEuro(priceResearch.new_price.summary.min)} - ${formatEuro(priceResearch.new_price.summary.max)}`
+                                                        : 'Geen bruikbare prijsdata'}
+                                                </div>
+                                                {priceResearch.new_price.summary && (
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        Mediaan {formatEuro(priceResearch.new_price.summary.median)} ({priceResearch.new_price.count} treffers)
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="rounded-xl border border-gray-200 p-3">
+                                                <div className="text-xs text-gray-500">Tweedehands vraagprijzen</div>
+                                                <div className="text-sm font-semibold text-gray-900 mt-1">
+                                                    {priceResearch.market.summary
+                                                        ? `${formatEuro(priceResearch.market.summary.min)} - ${formatEuro(priceResearch.market.summary.max)}`
+                                                        : 'Geen bruikbare prijsdata'}
+                                                </div>
+                                                {priceResearch.market.summary && (
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        Mediaan {formatEuro(priceResearch.market.summary.median)} ({priceResearch.market.count} treffers)
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {priceResearch.market.sources.length > 0 && (
+                                            <div className="rounded-xl border border-gray-200 p-3">
+                                                <div className="text-xs font-semibold text-gray-600 mb-2">Bronnen (controleer altijd zelf)</div>
+                                                <div className="space-y-2">
+                                                    {priceResearch.market.sources.slice(0, 5).map((source) => (
+                                                        <a
+                                                            key={source.link}
+                                                            href={source.link}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="block text-xs text-orange-600 hover:underline"
+                                                        >
+                                                            {source.title}
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="bg-white rounded-2xl shadow-sm p-6">
                         <h2 className="font-bold text-gray-900 mb-4">Foto's</h2>
 

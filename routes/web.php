@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\PushSubscriptionController;
 use App\Http\Controllers\Admin\PwaController;
 use App\Http\Controllers\Admin\ScooterController;
+use App\Http\Controllers\Admin\ScooterPriceResearchController;
 use App\Http\Controllers\Admin\ScooterPartController;
 use App\Http\Controllers\Admin\ScooterPhotoController;
 use App\Http\Controllers\Admin\SiteSettingsController;
@@ -123,6 +124,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Google image search (admin only)
     Route::get('/scooters/{scooter}/google-fotos', [GoogleImageController::class, 'search'])->name('scooters.google.search');
     Route::post('/scooters/{scooter}/google-fotos/importeer', [GoogleImageController::class, 'import'])->name('scooters.google.import');
+    Route::get('/scooters/{scooter}/prijsindicatie', [ScooterPriceResearchController::class, 'estimate'])->name('scooters.price.estimate');
 
     // Brands & Models
     Route::post('/merken', [BrandController::class, 'store'])->name('brands.store');
