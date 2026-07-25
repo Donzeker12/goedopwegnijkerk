@@ -50,6 +50,7 @@ class HomeController extends Controller
             'siteSettings' => SiteSettings::many([
                 'home-hero',
                 'home-quality',
+                'home-maintenance',
                 'home-featured',
                 'home-cta',
                 'home-info',

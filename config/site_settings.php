@@ -74,6 +74,53 @@ return [
                 ],
             ],
         ],
+        'home-maintenance' => [
+            'title' => 'Homepage onderhoud en reparatie',
+            'description' => 'Bewerk de onderhoudssectie met kaarten en prijzen op de homepage.',
+            'preview_url' => '/',
+            'fields' => [
+                ['key' => 'eyebrow', 'label' => 'Bovenlabel', 'type' => 'text'],
+                ['key' => 'title', 'label' => 'Titel', 'type' => 'text'],
+                ['key' => 'description', 'label' => 'Omschrijving', 'type' => 'textarea'],
+                [
+                    'key' => 'cards',
+                    'label' => 'Onderhoudskaarten',
+                    'type' => 'repeater',
+                    'itemLabel' => 'Kaart',
+                    'fields' => [
+                        ['key' => 'badge', 'label' => 'Badge', 'type' => 'text'],
+                        ['key' => 'title', 'label' => 'Titel', 'type' => 'text'],
+                        ['key' => 'description', 'label' => 'Subtitel', 'type' => 'text'],
+                        ['key' => 'items', 'label' => 'Onderdelen (1 per regel)', 'type' => 'textarea'],
+                        ['key' => 'price_label', 'label' => 'Prijslabel', 'type' => 'text'],
+                        ['key' => 'price', 'label' => 'Prijs', 'type' => 'text'],
+                    ],
+                ],
+            ],
+            'defaults' => [
+                'eyebrow' => 'Nu beschikbaar',
+                'title' => 'Scooter reparatie en onderhoudsbeurten',
+                'description' => 'Naast verkoop kun je nu ook bij ons terecht voor scooter reparaties en onderhoud. Zo rijd je veilig, betrouwbaar en zonder verrassingen de weg op.',
+                'cards' => [
+                    [
+                        'badge' => 'Kleine beurt',
+                        'title' => 'Voor periodiek onderhoud',
+                        'description' => 'Sterke basiscontrole voor dagelijks betrouwbaar gebruik.',
+                        'items' => '<ul><li>Controle op remmen, verlichting en banden</li><li>Motorolie controleren en waar nodig verversen</li><li>Accucheck en algemene veiligheidscontrole</li><li>Ketting en aandrijving nalopen en afstellen</li></ul>',
+                        'price_label' => 'Prijs',
+                        'price' => 'Vanaf EUR 79',
+                    ],
+                    [
+                        'badge' => 'Grote beurt',
+                        'title' => 'Voor complete service en zekerheid',
+                        'description' => 'Uitgebreide inspectie en onderhoud voor maximale zekerheid.',
+                        'items' => '<ul><li>Alles van de kleine beurt</li><li>Bougie, filters en vloeistoffen controleren of vervangen</li><li>Remsysteem en variateur grondig nalopen</li><li>Uitgebreide proefrit en eindcontrole</li></ul>',
+                        'price_label' => 'Prijs',
+                        'price' => 'Vanaf EUR 159',
+                    ],
+                ],
+            ],
+        ],
         'home-featured' => [
             'title' => 'Homepage nieuwste aanbod',
             'description' => 'Bewerk kopteksten en link van het nieuwste aanbod op de homepage.',

@@ -109,7 +109,20 @@ class ScooterPriceResearchController extends Controller
 
         if (! $response->ok()) {
             $googleError = (string) ($response->json('error.message') ?? '');
+            $googleReason = (string) ($response->json('error.errors.0.reason') ?? '');
+
+            $hint = match ($googleReason) {
+                'API_KEY_INVALID' => ' Controleer GOOGLE_API_KEY: sleutel ongeldig of onjuist gekopieerd.',
+                'keyInvalid' => ' Controleer GOOGLE_API_KEY: sleutel ongeldig of onjuist gekopieerd.',
+                'ipRefererBlocked' => ' API key restricties blokkeren deze server/referer.',
+                'accessNotConfigured', 'SERVICE_DISABLED' => ' Custom Search API staat niet aan voor dit Google Cloud project.',
+                'forbidden' => ' Dit Google Cloud project heeft geen toegang tot de Custom Search API of billing ontbreekt.',
+                'badRequest', 'invalid' => ' Controleer GOOGLE_SEARCH_ENGINE_ID (cx): deze lijkt ongeldig.',
+                default => '',
+            };
+
             $suffix = $googleError !== '' ? ' - ' . $googleError : '';
+            $suffix .= $hint;
             throw new \RuntimeException('Google zoekdienst gaf status ' . $response->status() . $suffix);
         }
 

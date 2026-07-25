@@ -39,6 +39,22 @@ export interface HomeQualitySettings {
     cards: SiteSettingsQualityCard[];
 }
 
+export interface HomeMaintenanceCard {
+    badge: string;
+    title: string;
+    description: string;
+    items: string;
+    price_label: string;
+    price: string;
+}
+
+export interface HomeMaintenanceSettings {
+    eyebrow: string;
+    title: string;
+    description: string;
+    cards: HomeMaintenanceCard[];
+}
+
 export interface HomeFeaturedSettings {
     eyebrow: string;
     title: string;

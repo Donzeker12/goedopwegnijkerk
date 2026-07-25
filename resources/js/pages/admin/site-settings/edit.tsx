@@ -1,5 +1,6 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { type FormEvent } from 'react';
+import TipTapEditor from '../../../components/TipTapEditor';
 import AdminLayout from '../../../layouts/AdminLayout';
 
 interface RepeaterFieldDefinition {
@@ -39,6 +40,10 @@ interface Props {
 
 function asString(value: unknown): string {
     return typeof value === 'string' ? value : '';
+}
+
+function shouldUseTipTap(sectionSlug: string, fieldKey: string, subFieldKey: string): boolean {
+    return sectionSlug === 'home-maintenance' && fieldKey === 'cards' && subFieldKey === 'items';
 }
 
 export default function SiteSettingsEdit({ sections, section }: Props) {
@@ -192,7 +197,25 @@ export default function SiteSettingsEdit({ sections, section }: Props) {
                                                     {(field.fields ?? []).map((subField) => (
                                                         <div key={subField.key} className={subField.type === 'textarea' ? 'md:col-span-2' : ''}>
                                                             <label className="mb-1.5 block text-sm font-medium text-gray-700">{subField.label}</label>
-                                                            {subField.type === 'textarea' ? (
+                                                            {subField.type === 'textarea' && shouldUseTipTap(section.slug, field.key, subField.key) ? (
+                                                                <div className="rounded-xl border border-gray-300 bg-white p-3">
+                                                                    <style>{`
+                                                                        .site-settings-tiptap .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                                                                        .site-settings-tiptap .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                                                                        .site-settings-tiptap .prose li { margin-bottom: 0.25rem; color: #374151; }
+                                                                        .site-settings-tiptap .prose p { margin-bottom: 0.75rem; color: #374151; }
+                                                                    `}</style>
+                                                                    <div className="site-settings-tiptap">
+                                                                        <TipTapEditor
+                                                                            value={asString(item[subField.key])}
+                                                                            onChange={(html) => updateRepeaterItem(field.key, index, subField.key, html)}
+                                                                            placeholder="Gebruik bullet points om onderdelen toe te voegen..."
+                                                                            spellCheck
+                                                                            language="nl"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            ) : subField.type === 'textarea' ? (
                                                                 <textarea
                                                                     value={asString(item[subField.key])}
                                                                     onChange={(event) => updateRepeaterItem(field.key, index, subField.key, event.target.value)}

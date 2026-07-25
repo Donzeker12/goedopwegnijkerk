@@ -43,7 +43,18 @@ class GoogleImageController extends Controller
 
         if (!$response->ok()) {
             $errorMsg = $response->json('error.message') ?? 'Onbekende fout van Google API.';
-            return response()->json(['error' => $errorMsg], 500);
+            $reason = (string) ($response->json('error.errors.0.reason') ?? '');
+
+            $hint = match ($reason) {
+                'API_KEY_INVALID', 'keyInvalid' => ' Controleer GOOGLE_API_KEY: sleutel ongeldig of onjuist gekopieerd.',
+                'ipRefererBlocked' => ' API key restricties blokkeren deze server/referer.',
+                'accessNotConfigured', 'SERVICE_DISABLED' => ' Custom Search API staat niet aan voor dit Google Cloud project.',
+                'forbidden' => ' Dit Google Cloud project heeft geen toegang tot de Custom Search API of billing ontbreekt.',
+                'badRequest', 'invalid' => ' Controleer GOOGLE_SEARCH_ENGINE_ID (cx): deze lijkt ongeldig.',
+                default => '',
+            };
+
+            return response()->json(['error' => $errorMsg . $hint], 500);
         }
 
         $items = collect($response->json('items', []))->map(fn($item) => [
