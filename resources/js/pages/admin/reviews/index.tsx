@@ -1,93 +1,131 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 import AdminLayout from '../../../layouts/AdminLayout';
 
-interface ReviewItem {
-    name: string;
-    city: string;
-    rating: string;
-    text: string;
-}
-
-interface ReviewSettings {
+interface ReviewSectionSettings {
     eyebrow: string;
     title: string;
     description: string;
-    items: ReviewItem[];
+}
+
+interface ReviewInvite {
+    id: number;
+    link: string;
+    expires_at: string | null;
+    used_at: string | null;
+    created_at: string | null;
+    is_expired: boolean;
+    is_used: boolean;
+    is_usable: boolean;
+}
+
+interface ReviewRecord {
+    id: number;
+    name: string;
+    city: string | null;
+    rating: number;
+    text: string;
+    status: 'pending' | 'approved' | 'rejected';
+    submitted_at: string | null;
+    approved_at: string | null;
 }
 
 interface Props {
-    reviews: ReviewSettings;
+    settings: ReviewSectionSettings;
+    pendingReviews: ReviewRecord[];
+    approvedReviews: ReviewRecord[];
+    reviewInvites: ReviewInvite[];
 }
 
-const emptyReview: ReviewItem = {
-    name: '',
-    city: '',
-    rating: '5',
-    text: '',
-};
-
-function toReviewItems(items: ReviewItem[]): ReviewItem[] {
-    return items.length > 0 ? items : [];
-}
-
-export default function ReviewsIndex({ reviews }: Props) {
-    const { props } = usePage<{ flash?: { success?: string } }>();
+export default function ReviewsIndex({ settings, pendingReviews, approvedReviews, reviewInvites }: Props) {
+    const { props } = usePage<{ flash?: { success?: string; error?: string } }>();
     const flash = props.flash;
 
-    const { data, setData, put, processing } = useForm<ReviewSettings>({
-        eyebrow: reviews.eyebrow ?? 'Reviews',
-        title: reviews.title ?? 'Wat klanten over ons zeggen',
-        description: reviews.description ?? '',
-        items: toReviewItems(reviews.items ?? []),
+    const sectionForm = useForm<ReviewSectionSettings>({
+        eyebrow: settings.eyebrow ?? 'Reviews',
+        title: settings.title ?? 'Wat klanten over ons zeggen',
+        description: settings.description ?? '',
     });
 
-    function handleSubmit(event: FormEvent) {
+    const inviteForm = useForm({
+        expires_in_days: '30',
+    });
+
+    function saveSectionSettings(event: FormEvent) {
         event.preventDefault();
-        put('/admin/reviews');
+        sectionForm.put('/admin/reviews');
     }
 
-    function updateField(key: keyof Omit<ReviewSettings, 'items'>, value: string) {
-        setData(key, value);
+    function createInvite(event: FormEvent) {
+        event.preventDefault();
+        inviteForm.post('/admin/reviews/links', {
+            onSuccess: () => {
+                inviteForm.setData('expires_in_days', '30');
+            },
+        });
     }
 
-    function updateItem(index: number, key: keyof ReviewItem, value: string) {
-        const items = [...data.items];
-        const current = items[index] ?? emptyReview;
-
-        items[index] = {
-            ...current,
-            [key]: value,
-        };
-
-        setData('items', items);
+    function updateStatus(reviewId: number, status: 'pending' | 'approved' | 'rejected') {
+        router.patch(`/admin/reviews/${reviewId}/status`, { status });
     }
 
-    function addItem() {
-        setData('items', [...data.items, { ...emptyReview }]);
+    function fallbackCopy(text: string): boolean {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.setAttribute('readonly', '');
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        textArea.style.pointerEvents = 'none';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        let copied = false;
+
+        try {
+            copied = document.execCommand('copy');
+        } finally {
+            document.body.removeChild(textArea);
+        }
+
+        return copied;
     }
 
-    function removeItem(index: number) {
-        const items = [...data.items];
-        items.splice(index, 1);
-        setData('items', items);
+    async function copyLink(link: string) {
+        try {
+            if (window.isSecureContext && navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(link);
+                window.alert('Link gekopieerd.');
+                return;
+            }
+
+            if (fallbackCopy(link)) {
+                window.alert('Link gekopieerd.');
+                return;
+            }
+
+            throw new Error('Fallback copy failed');
+        } catch {
+            const manualField = prompt('Kopieer deze link handmatig:', link);
+
+            if (manualField !== null) {
+                return;
+            }
+
+            window.alert('Kopieren geannuleerd.');
+        }
     }
 
-    const visibleReviews = data.items.filter((item) => item.name.trim() !== '' || item.text.trim() !== '');
-    const reviewStats = visibleReviews.reduce(
-        (stats, item) => {
-            const rating = Math.max(1, Math.min(5, Number.parseInt(item.rating || '5', 10) || 5));
-
-            return {
-                total: stats.total + 1,
-                sum: stats.sum + rating,
-            };
-        },
+    const approvedStats = approvedReviews.reduce(
+        (stats, review) => ({
+            total: stats.total + 1,
+            sum: stats.sum + Math.max(1, Math.min(5, review.rating || 5)),
+        }),
         { total: 0, sum: 0 },
     );
 
-    const averageRating = reviewStats.total > 0 ? Number((reviewStats.sum / reviewStats.total).toFixed(1)) : 0;
-    const averageStars = reviewStats.total > 0
+    const averageRating = approvedStats.total > 0 ? Number((approvedStats.sum / approvedStats.total).toFixed(1)) : 0;
+    const averageStars = approvedStats.total > 0
         ? '★'.repeat(Math.round(averageRating)) + '☆'.repeat(5 - Math.round(averageRating))
         : '';
 
@@ -96,31 +134,32 @@ export default function ReviewsIndex({ reviews }: Props) {
             <Head title="Reviews beheren" />
 
             {flash?.success && (
-                <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                    ✅ {flash.success}
+                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                    {flash.success}
                 </div>
             )}
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <div className="flex flex-col gap-1">
-                            <h2 className="text-2xl font-bold text-gray-900">Homepage reviews</h2>
-                            <p className="text-sm text-gray-600">
-                                Deze sectie is losgekoppeld van site-instellingen en verschijnt alleen op de homepage als er reviews zijn ingevuld.
-                            </p>
-                        </div>
-                    </div>
+            {flash?.error && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {flash.error}
+                </div>
+            )}
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <section className="space-y-6">
+                    <form onSubmit={saveSectionSettings} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900">Homepage review-sectie</h2>
+                            <p className="text-sm text-gray-600 mt-1">Alleen goedgekeurde reviews worden zichtbaar op de homepage.</p>
+                        </div>
+
                         <div>
                             <label className="mb-1.5 block text-sm font-medium text-gray-700">Bovenlabel</label>
                             <input
                                 type="text"
-                                value={data.eyebrow}
-                                onChange={(event) => updateField('eyebrow', event.target.value)}
+                                value={sectionForm.data.eyebrow}
+                                onChange={(event) => sectionForm.setData('eyebrow', event.target.value)}
                                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                placeholder="Reviews"
                             />
                         </div>
 
@@ -128,169 +167,188 @@ export default function ReviewsIndex({ reviews }: Props) {
                             <label className="mb-1.5 block text-sm font-medium text-gray-700">Titel</label>
                             <input
                                 type="text"
-                                value={data.title}
-                                onChange={(event) => updateField('title', event.target.value)}
+                                value={sectionForm.data.title}
+                                onChange={(event) => sectionForm.setData('title', event.target.value)}
                                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                placeholder="Wat klanten over ons zeggen"
                             />
                         </div>
 
                         <div>
                             <label className="mb-1.5 block text-sm font-medium text-gray-700">Omschrijving</label>
                             <textarea
-                                value={data.description}
-                                onChange={(event) => updateField('description', event.target.value)}
-                                rows={4}
+                                value={sectionForm.data.description}
+                                onChange={(event) => sectionForm.setData('description', event.target.value)}
+                                rows={3}
                                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                placeholder="Korte intro bij de reviews sectie"
                             />
                         </div>
-                    </div>
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">Reviews</h3>
-                                <p className="text-xs text-gray-500">Voeg zoveel reviews toe als je wilt. Lege items worden niet getoond op de homepage.</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={addItem}
-                                className="rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-                            >
-                                + Review
-                            </button>
+                        <button
+                            type="submit"
+                            disabled={sectionForm.processing}
+                            className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                        >
+                            {sectionForm.processing ? 'Opslaan...' : 'Sectie opslaan'}
+                        </button>
+                    </form>
+
+                    <form onSubmit={createInvite} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900">Beveiligde reviewlink maken</h2>
+                            <p className="text-sm text-gray-600 mt-1">Stuur deze link via WhatsApp naar je klant. Elke link is eenmalig te gebruiken.</p>
                         </div>
 
-                        <div className="space-y-4">
-                            {data.items.length === 0 ? (
-                                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500">
-                                    Nog geen reviews toegevoegd. Klik op “Review” om te starten.
-                                </div>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[220px_auto] sm:items-end">
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Verloopt na (dagen)</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="365"
+                                    value={inviteForm.data.expires_in_days}
+                                    onChange={(event) => inviteForm.setData('expires_in_days', event.target.value)}
+                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={inviteForm.processing}
+                                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                            >
+                                {inviteForm.processing ? 'Aanmaken...' : 'Nieuwe link maken'}
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <h3 className="text-lg font-bold text-gray-900">Laatste links</h3>
+                        <div className="mt-4 space-y-3">
+                            {reviewInvites.length === 0 ? (
+                                <p className="text-sm text-gray-500">Nog geen links gemaakt.</p>
                             ) : (
-                                data.items.map((item, index) => (
-                                    <div key={`${index}-${item.name || 'review'}`} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                                        <div className="mb-3 flex items-center justify-between gap-3">
-                                            <div className="text-sm font-semibold text-gray-900">Review {index + 1}</div>
+                                reviewInvites.map((invite) => (
+                                    <div key={invite.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                        <div className="text-xs text-gray-600 mb-2">
+                                            {invite.is_usable ? 'Actief' : invite.is_used ? 'Gebruikt' : invite.is_expired ? 'Verlopen' : 'Inactief'}
+                                            {' • '}Aangemaakt: {invite.created_at ?? '-'}
+                                            {invite.expires_at ? ` • Verloopt: ${invite.expires_at}` : ''}
+                                            {invite.used_at ? ` • Gebruikt: ${invite.used_at}` : ''}
+                                        </div>
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                            <input
+                                                readOnly
+                                                value={invite.link}
+                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700"
+                                            />
                                             <button
                                                 type="button"
-                                                onClick={() => removeItem(index)}
-                                                className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                                                onClick={() => copyLink(invite.link)}
+                                                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
                                             >
-                                                Verwijderen
+                                                Kopieer
                                             </button>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                            <div>
-                                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Naam</label>
-                                                <input
-                                                    type="text"
-                                                    value={item.name}
-                                                    onChange={(event) => updateItem(index, 'name', event.target.value)}
-                                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                                    placeholder="Klantnaam"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Plaats</label>
-                                                <input
-                                                    type="text"
-                                                    value={item.city}
-                                                    onChange={(event) => updateItem(index, 'city', event.target.value)}
-                                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                                    placeholder="Bijv. Nijkerk"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Score</label>
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    max="5"
-                                                    step="1"
-                                                    value={item.rating}
-                                                    onChange={(event) => updateItem(index, 'rating', event.target.value)}
-                                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                                />
-                                            </div>
-
-                                            <div className="md:col-span-2">
-                                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Review tekst</label>
-                                                <textarea
-                                                    value={item.text}
-                                                    onChange={(event) => updateItem(index, 'text', event.target.value)}
-                                                    rows={4}
-                                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                                    placeholder="Wat zei de klant precies?"
-                                                />
-                                            </div>
                                         </div>
                                     </div>
                                 ))
                             )}
                         </div>
                     </div>
+                </section>
 
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:opacity-60"
-                        >
-                            {processing ? 'Opslaan...' : 'Reviews opslaan'}
-                        </button>
-                    </div>
-                </form>
-
-                <aside className="space-y-5">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <h3 className="text-lg font-bold text-gray-900">Live preview</h3>
-                        <p className="mt-1 text-sm text-gray-600">Zo komt de sectie op de homepage te staan.</p>
-
-                        <div className="mt-5 space-y-4">
-                            <div>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">{data.eyebrow || 'Reviews'}</p>
-                                <h4 className="mt-1 text-2xl font-black text-gray-900">{data.title || 'Wat klanten over ons zeggen'}</h4>
-                                {data.description && <p className="mt-2 text-sm leading-relaxed text-gray-600">{data.description}</p>}
-                                {reviewStats.total > 0 && (
-                                    <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
-                                        <span className="font-semibold text-amber-700">{averageStars}</span>
-                                        <span className="font-bold text-gray-900">{averageRating.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} / 5</span>
-                                        <span className="text-gray-600">{reviewStats.total.toLocaleString('nl-NL')} review{reviewStats.total === 1 ? '' : 's'}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4">
-                                {(visibleReviews.length > 0 ? visibleReviews : [{ ...emptyReview, name: 'Voorbeeld review', text: 'Voeg een review toe om de homepage sectie zichtbaar te maken.' }]).map((item, index) => {
-                                    const rating = Math.max(1, Math.min(5, Number.parseInt(item.rating || '5', 10) || 5));
-                                    const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-
-                                    return (
-                                        <article key={`${index}-${item.name}`} className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                                            <div className="text-amber-500 text-base tracking-wide">{stars}</div>
-                                            <p className="mt-3 text-sm leading-relaxed text-gray-700">{item.text}</p>
-                                            <div className="mt-4 pt-3 border-t border-gray-200">
-                                                <p className="font-bold text-gray-900 text-sm">{item.name}</p>
-                                                {item.city && <p className="text-xs text-gray-500">{item.city}</p>}
-                                            </div>
-                                        </article>
-                                    );
-                                })}
-                            </div>
+                <section className="space-y-6">
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+                        <h3 className="text-lg font-bold text-amber-900">Live statistiek (goedgekeurd)</h3>
+                        <div className="mt-2 text-sm text-amber-900">
+                            {approvedStats.total > 0 ? (
+                                <>
+                                    <span className="font-semibold">{averageStars}</span>
+                                    {' '}
+                                    <span className="font-bold">{averageRating.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} / 5</span>
+                                    {' op basis van '}
+                                    <span className="font-bold">{approvedStats.total.toLocaleString('nl-NL')}</span>
+                                    {' review'}{approvedStats.total === 1 ? '' : 's'}
+                                </>
+                            ) : (
+                                <span>Nog geen goedgekeurde reviews.</span>
+                            )}
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-                        <h3 className="text-base font-bold text-amber-900">Tip</h3>
-                        <p className="mt-2 leading-relaxed">
-                            Laat de lijst leeg als je de homepage-sectie tijdelijk wilt verbergen. Zodra er minstens één review is, verschijnt de sectie automatisch.
-                        </p>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <h3 className="text-lg font-bold text-gray-900">In afwachting ({pendingReviews.length})</h3>
+                        <div className="mt-4 space-y-4">
+                            {pendingReviews.length === 0 ? (
+                                <p className="text-sm text-gray-500">Geen wachtende reviews.</p>
+                            ) : (
+                                pendingReviews.map((review) => (
+                                    <article key={review.id} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                            <span>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                                            <span>{review.name}</span>
+                                            {review.city && <span>• {review.city}</span>}
+                                            {review.submitted_at && <span>• {review.submitted_at}</span>}
+                                        </div>
+                                        <p className="mt-2 text-sm text-gray-700 leading-relaxed">{review.text}</p>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateStatus(review.id, 'approved')}
+                                                className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600"
+                                            >
+                                                Goedkeuren
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateStatus(review.id, 'rejected')}
+                                                className="rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                            >
+                                                Afkeuren
+                                            </button>
+                                        </div>
+                                    </article>
+                                ))
+                            )}
+                        </div>
                     </div>
-                </aside>
+
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <h3 className="text-lg font-bold text-gray-900">Goedgekeurd ({approvedReviews.length})</h3>
+                        <div className="mt-4 space-y-4 max-h-[560px] overflow-y-auto pr-1">
+                            {approvedReviews.length === 0 ? (
+                                <p className="text-sm text-gray-500">Nog geen goedgekeurde reviews.</p>
+                            ) : (
+                                approvedReviews.map((review) => (
+                                    <article key={review.id} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                            <span>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                                            <span>{review.name}</span>
+                                            {review.city && <span>• {review.city}</span>}
+                                            {review.approved_at && <span>• Goedgekeurd: {review.approved_at}</span>}
+                                        </div>
+                                        <p className="mt-2 text-sm text-gray-700 leading-relaxed">{review.text}</p>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateStatus(review.id, 'pending')}
+                                                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                                            >
+                                                Terug naar wachtlijst
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateStatus(review.id, 'rejected')}
+                                                className="rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                            >
+                                                Afkeuren
+                                            </button>
+                                        </div>
+                                    </article>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </section>
             </div>
         </AdminLayout>
     );

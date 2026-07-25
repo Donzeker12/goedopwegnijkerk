@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LocationLandingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShopController;
 use App\Models\BlogPost;
 use App\Models\Scooter;
@@ -44,6 +45,8 @@ Route::get('/scooters/{scooter}', [ShopController::class, 'show'])->name('shop.s
 Route::get('/scooter-kopen-in-{city}', [LocationLandingController::class, 'show'])->name('seo.location.show');
 Route::post('/scooters/{scooter}/kleur-aanvraag', [ShopController::class, 'storeColorRequest'])->name('shop.color-request.store');
 Route::post('/scooters/{scooter}/proefrit-aanvraag', [ShopController::class, 'storeTestRideRequest'])->name('shop.test-ride-request.store');
+Route::get('/review/{token}', [ReviewController::class, 'create'])->name('reviews.create');
+Route::post('/review/{token}', [ReviewController::class, 'store'])->name('reviews.store')->middleware('throttle:10,1');
 
 Route::get('/sitemap.xml', function () {
     $urls = collect([
@@ -147,6 +150,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Reviews
     Route::get('/reviews', [HomepageReviewsController::class, 'index'])->name('reviews.index');
     Route::put('/reviews', [HomepageReviewsController::class, 'update'])->name('reviews.update');
+    Route::post('/reviews/links', [HomepageReviewsController::class, 'createInvite'])->name('reviews.links.store');
+    Route::patch('/reviews/{review}/status', [HomepageReviewsController::class, 'updateStatus'])->name('reviews.status.update');
 
     // Chat
     Route::get('/chat', [AdminChatController::class, 'index'])->name('chat.index');

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
+use App\Models\CustomerReview;
 use App\Models\Scooter;
 use App\Support\HomepageReviews;
 use App\Support\SiteSettings;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,6 +47,26 @@ class HomeController extends Controller
                 'cover' => $post->coverPhoto?->url ?? $post->photos->first()?->url,
             ]);
 
+        $reviewSettings = HomepageReviews::values();
+
+        $approvedReviews = [];
+
+        if (Schema::hasTable('customer_reviews')) {
+            $approvedReviews = CustomerReview::query()
+                ->approved()
+                ->orderByDesc('approved_at')
+                ->take(100)
+                ->get()
+                ->map(fn (CustomerReview $review) => [
+                    'name' => $review->name,
+                    'city' => $review->city,
+                    'rating' => (string) $review->rating,
+                    'text' => $review->text,
+                ])
+                ->values()
+                ->all();
+        }
+
         return Inertia::render('home', [
             'featured' => $featured,
             'latestBlogs' => $latestBlogs,
@@ -56,7 +78,12 @@ class HomeController extends Controller
                 'home-cta',
                 'home-info',
             ]),
-            'reviews' => HomepageReviews::values(),
+            'reviews' => [
+                'eyebrow' => $reviewSettings['eyebrow'] ?? 'Reviews',
+                'title' => $reviewSettings['title'] ?? 'Wat klanten over ons zeggen',
+                'description' => $reviewSettings['description'] ?? '',
+                'items' => $approvedReviews,
+            ],
             'cityLandingPages' => collect(config('seo.city_pages', []))
                 ->map(fn (array $city, string $slug) => [
                     'slug' => $slug,
