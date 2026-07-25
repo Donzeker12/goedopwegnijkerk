@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
+import TipTapEditor from '../../../components/TipTapEditor';
 import AdminLayout from '../../../layouts/AdminLayout';
 
 interface ScooterModelItem {
@@ -352,13 +353,21 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">Omschrijving</label>
-                            <textarea
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                rows={4}
-                                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-                                placeholder="Beschrijf de scooter..."
-                            />
+                            <style>{`
+                                .scooter-description-editor .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                                .scooter-description-editor .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                                .scooter-description-editor .prose li { margin-bottom: 0.25rem; color: #374151; }
+                                .scooter-description-editor .prose p { margin-bottom: 0.75rem; color: #374151; }
+                            `}</style>
+                            <div className="scooter-description-editor">
+                                <TipTapEditor
+                                    value={data.description}
+                                    onChange={(html) => setData('description', html)}
+                                    placeholder="Beschrijf de scooter met tekst en bullet points..."
+                                    spellCheck
+                                    language="nl"
+                                />
+                            </div>
                             {errors.description && <p className="mt-1 text-red-500 text-xs">{errors.description}</p>}
                         </div>
                     </div>

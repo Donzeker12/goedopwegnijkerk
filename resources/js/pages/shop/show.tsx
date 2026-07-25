@@ -227,6 +227,12 @@ function PhotoSlider({ photos, naam, primaryColor, accentColor }: { photos: Phot
 
 export default function ShopShow({ scooter, features, related_scooters }: Props) {
     const showColorConfigurator = false;
+    const descriptionHasHtml = /<\/?[a-z][\s\S]*>/i.test(scooter.description ?? '');
+    const plainDescriptionForSeo = (scooter.description ?? '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
     const faqItems = [
         {
@@ -256,7 +262,7 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
         '@type': 'Product',
         name: scooter.naam,
         brand: scooter.merk,
-        description: scooter.description ?? `${scooter.merk} ${scooter.model} tweedehands scooter`,
+        description: plainDescriptionForSeo || `${scooter.merk} ${scooter.model} tweedehands scooter`,
         image: scooter.photos.map((p) => p.url),
         sku: `scooter-${scooter.id}`,
         category: 'Tweedehands scooter',
@@ -425,7 +431,17 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
                         {scooter.description && (
                             <div className="mb-6">
                                 <h2 className="font-bold text-gray-900 mb-2">Omschrijving</h2>
-                                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{scooter.description}</p>
+                                <style>{`
+                                    .scooter-description-html p { margin-bottom: 0.75rem; color: #4b5563; line-height: 1.7; }
+                                    .scooter-description-html ul { list-style: disc; padding-left: 1.4rem; margin-bottom: 0.85rem; color: #4b5563; }
+                                    .scooter-description-html ol { list-style: decimal; padding-left: 1.4rem; margin-bottom: 0.85rem; color: #4b5563; }
+                                    .scooter-description-html li { margin-bottom: 0.35rem; }
+                                `}</style>
+                                {descriptionHasHtml ? (
+                                    <div className="scooter-description-html" dangerouslySetInnerHTML={{ __html: scooter.description }} />
+                                ) : (
+                                    <p className="text-gray-600 leading-relaxed whitespace-pre-line">{scooter.description}</p>
+                                )}
                             </div>
                         )}
 

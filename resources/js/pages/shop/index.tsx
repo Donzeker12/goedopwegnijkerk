@@ -25,6 +25,14 @@ interface Props {
     };
 }
 
+function toPlainText(value: string): string {
+    return value
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 export default function ShopIndex({ scooters, siteSettings }: Props) {
     const hero = siteSettings['shop-hero'];
     const info = siteSettings['shop-info'];
@@ -85,7 +93,7 @@ export default function ShopIndex({ scooters, siteSettings }: Props) {
                                 <div className="p-5">
                                     <h3 className="font-bold text-gray-900 text-xl mb-1">{scooter.naam}</h3>
                                     {scooter.description && (
-                                        <p className="text-gray-500 text-sm mb-3 line-clamp-2">{scooter.description}</p>
+                                        <p className="text-gray-500 text-sm mb-3 line-clamp-2">{toPlainText(scooter.description)}</p>
                                     )}
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {scooter.year && (
