@@ -1,5 +1,6 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { type FormEvent } from 'react';
+import SeoHead from '../../components/SeoHead';
 import AppLayout from '../../layouts/AppLayout';
 
 interface Props {
@@ -28,6 +29,12 @@ export default function ReviewCreate({ token, isExpired, isUsed }: Props) {
 
     return (
         <AppLayout>
+            <SeoHead
+                title="Review achterlaten"
+                description="Laat je review achter voor Goed Op Weg Nijkerk via een persoonlijke reviewlink."
+                path={`/review/${token}`}
+                noindex
+            />
             <Head title="Review achterlaten" />
 
             <section className="bg-slate-50 py-14 sm:py-18">

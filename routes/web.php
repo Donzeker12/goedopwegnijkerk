@@ -28,6 +28,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShopController;
 use App\Models\BlogPost;
 use App\Models\Scooter;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -49,32 +50,49 @@ Route::get('/review/{token}', [ReviewController::class, 'create'])->name('review
 Route::post('/review/{token}', [ReviewController::class, 'store'])->name('reviews.store')->middleware('throttle:10,1');
 
 Route::get('/sitemap.xml', function () {
-    $urls = collect([
-        url('/'),
-        url('/scooters'),
-        url('/over-ons'),
-        url('/faq'),
-        url('/blog'),
-        url('/chat'),
+    $today = Carbon::now()->toDateString();
+
+    $baseUrls = collect([
+        ['loc' => url('/'), 'lastmod' => $today],
+        ['loc' => url('/scooters'), 'lastmod' => $today],
+        ['loc' => url('/over-ons'), 'lastmod' => $today],
+        ['loc' => url('/faq'), 'lastmod' => $today],
+        ['loc' => url('/blog'), 'lastmod' => $today],
     ]);
 
     $scooterUrls = Scooter::query()
         ->where('ready_for_sale', true)
         ->where('status', 'te_koop')
-        ->pluck('id')
-        ->map(fn (int $id) => url('/scooters/' . $id));
+        ->get(['id', 'updated_at'])
+        ->map(fn (Scooter $scooter) => [
+            'loc' => url('/scooters/' . $scooter->id),
+            'lastmod' => $scooter->updated_at?->toDateString() ?? $today,
+        ]);
 
     $blogUrls = BlogPost::query()
         ->where('is_published', true)
         ->where('published_at', '!=', null)
-        ->pluck('slug')
-        ->map(fn (string $slug) => url('/blog/' . $slug));
+        ->get(['slug', 'published_at', 'updated_at'])
+        ->map(fn (BlogPost $post) => [
+            'loc' => url('/blog/' . $post->slug),
+            'lastmod' => $post->updated_at?->toDateString()
+                ?? $post->published_at?->toDateString()
+                ?? $today,
+        ]);
 
     $cityUrls = collect(array_keys(config('seo.city_pages', [])))
-        ->map(fn (string $citySlug) => url('/scooter-kopen-in-' . $citySlug));
+        ->map(fn (string $citySlug) => [
+            'loc' => url('/scooter-kopen-in-' . $citySlug),
+            'lastmod' => $today,
+        ]);
 
     $xml = view('sitemap', [
-        'urls' => $urls->merge($scooterUrls)->merge($blogUrls)->merge($cityUrls)->unique()->values(),
+        'urls' => $baseUrls
+            ->merge($scooterUrls)
+            ->merge($blogUrls)
+            ->merge($cityUrls)
+            ->unique('loc')
+            ->values(),
     ])->render();
 
     return response($xml, 200)->header('Content-Type', 'application/xml');

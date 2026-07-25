@@ -13,6 +13,8 @@ interface Props {
 
 const SITE_NAME = 'Goed Op Weg Nijkerk';
 const DEFAULT_IMAGE = '/apple-touch-icon.png';
+const SITE_LOCALE = 'nl_NL';
+const TWITTER_HANDLE = '@goedopwegnijkerk';
 
 function absoluteUrl(path?: string): string {
     const base = (import.meta.env.VITE_APP_URL as string | undefined)?.replace(/\/$/, '');
@@ -72,12 +74,14 @@ export default function SeoHead({
 
             <meta property="og:site_name" content={SITE_NAME} />
             <meta property="og:type" content={type} />
+            <meta property="og:locale" content={SITE_LOCALE} />
             <meta property="og:title" content={fullTitle} />
             <meta property="og:description" content={description} />
             <meta property="og:url" content={canonical} />
             <meta property="og:image" content={imageUrl} />
 
             <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:site" content={TWITTER_HANDLE} />
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={imageUrl} />

@@ -91,6 +91,21 @@ export default function ReviewsIndex({ settings, pendingReviews, approvedReviews
         return copied;
     }
 
+    function buildInviteMessage(link: string): string {
+        return [
+            'Hoi! Wil je een korte review achterlaten over je ervaring bij Goed Op Weg Nijkerk?',
+            '',
+            'Zo werkt het:',
+            '1. Open de link hieronder.',
+            '2. Vul je naam, sterren en reviewtekst in.',
+            '3. Klik op "Review versturen".',
+            '',
+            'Je review wordt eerst gecontroleerd en daarna geplaatst op de website.',
+            '',
+            link,
+        ].join('\n');
+    }
+
     async function copyLink(link: string) {
         try {
             if (window.isSecureContext && navigator.clipboard?.writeText) {
@@ -114,6 +129,10 @@ export default function ReviewsIndex({ settings, pendingReviews, approvedReviews
 
             window.alert('Kopieren geannuleerd.');
         }
+    }
+
+    async function copyInviteMessage(link: string) {
+        await copyLink(buildInviteMessage(link));
     }
 
     const approvedStats = approvedReviews.reduce(
@@ -246,7 +265,14 @@ export default function ReviewsIndex({ settings, pendingReviews, approvedReviews
                                                 onClick={() => copyLink(invite.link)}
                                                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
                                             >
-                                                Kopieer
+                                                Kopieer link
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyInviteMessage(invite.link)}
+                                                className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100"
+                                            >
+                                                Kopieer bericht
                                             </button>
                                         </div>
                                     </div>

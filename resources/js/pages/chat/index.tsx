@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
 import AppLayout from '../../layouts/AppLayout';
 import SeoHead from '../../components/SeoHead';
@@ -45,14 +45,12 @@ export default function ChatIndex({ source, selected_scooter_id, scooters }: Pro
                 title="Start chat"
                 description="Stuur een chatverzoek naar Goed Op Weg Nijkerk en chat direct verder op de website."
                 path="/chat"
+                noindex
                 breadcrumbs={[
                     { name: 'Home', url: '/' },
                     { name: 'Start chat' },
                 ]}
             />
-            <Head>
-                <meta name="robots" content="noindex,follow" />
-            </Head>
 
             <section className="bg-linear-to-br from-gray-900 via-gray-800 to-orange-900 text-white py-16">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
