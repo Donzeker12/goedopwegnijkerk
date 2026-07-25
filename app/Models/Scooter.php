@@ -11,6 +11,7 @@ class Scooter extends Model
     protected $fillable = [
         'brand_id',
         'scooter_model_id',
+        'custom_title',
         'purchase_price',
         'expected_sale_price',
         'actual_sale_price',
@@ -121,6 +122,11 @@ class Scooter extends Model
 
     public function getDisplayNameAttribute(): string
     {
+        $customTitle = trim((string) ($this->custom_title ?? ''));
+        if ($customTitle !== '') {
+            return $customTitle;
+        }
+
         return $this->brand->name . ' ' . $this->scooterModel->name . ($this->year ? ' (' . $this->year . ')' : '');
     }
 }

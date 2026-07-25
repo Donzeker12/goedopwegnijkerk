@@ -152,6 +152,7 @@ class ScooterController extends Controller
         $validated = $request->validate([
             'brand_id' => ['required', 'exists:brands,id'],
             'scooter_model_id' => ['required', 'exists:scooter_models,id'],
+            'custom_title' => ['nullable', 'string', 'max:140'],
             'purchase_price' => ['required', 'numeric', 'min:0'],
             'expected_sale_price' => ['nullable', 'numeric', 'min:0'],
             'actual_sale_price' => ['nullable', 'numeric', 'min:0'],
@@ -248,6 +249,7 @@ class ScooterController extends Controller
                 'id' => $scooter->id,
                 'brand_id' => $scooter->brand_id,
                 'scooter_model_id' => $scooter->scooter_model_id,
+                'custom_title' => $scooter->custom_title,
                 'purchase_price' => (float) $scooter->purchase_price,
                 'expected_sale_price' => $scooter->expected_sale_price ? (float) $scooter->expected_sale_price : null,
                 'actual_sale_price' => $scooter->actual_sale_price ? (float) $scooter->actual_sale_price : null,
@@ -313,6 +315,7 @@ class ScooterController extends Controller
         $validated = $request->validate([
             'brand_id' => ['required', 'exists:brands,id'],
             'scooter_model_id' => ['required', 'exists:scooter_models,id'],
+            'custom_title' => ['nullable', 'string', 'max:140'],
             'purchase_price' => ['required', 'numeric', 'min:0'],
             'expected_sale_price' => ['nullable', 'numeric', 'min:0'],
             'actual_sale_price' => ['nullable', 'numeric', 'min:0'],

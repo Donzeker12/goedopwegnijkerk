@@ -26,6 +26,7 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         brand_id: '',
         scooter_model_id: '',
+        custom_title: '',
         purchase_price: '',
         expected_sale_price: '',
         actual_sale_price: '',
@@ -162,6 +163,19 @@ export default function ScooterCreate({ brands: initialBrands }: Props) {
                                 </select>
                                 {errors.scooter_model_id && <p className="mt-1 text-red-500 text-xs">{errors.scooter_model_id}</p>}
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Aparte titel (optioneel)</label>
+                            <input
+                                type="text"
+                                value={data.custom_title}
+                                onChange={(e) => setData('custom_title', e.target.value)}
+                                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                placeholder="Bijv. BTC Cruise - Technisch top, kapschade"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Laat leeg om automatisch merk + model + bouwjaar te tonen.</p>
+                            {errors.custom_title && <p className="mt-1 text-red-500 text-xs">{errors.custom_title}</p>}
                         </div>
 
                         {/* Inline add brand / add model */}

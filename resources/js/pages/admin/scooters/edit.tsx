@@ -91,6 +91,7 @@ interface ScooterData {
     id: number;
     brand_id: number;
     scooter_model_id: number;
+    custom_title: string | null;
     purchase_price: number;
     expected_sale_price: number | null;
     actual_sale_price: number | null;
@@ -151,6 +152,7 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
     const { data, setData, put, processing, errors, isDirty } = useForm({
         brand_id: String(scooter.brand_id),
         scooter_model_id: String(scooter.scooter_model_id),
+        custom_title: scooter.custom_title ?? '',
         purchase_price: String(scooter.purchase_price),
         expected_sale_price: scooter.expected_sale_price ? String(scooter.expected_sale_price) : '',
         actual_sale_price: scooter.actual_sale_price ? String(scooter.actual_sale_price) : '',
@@ -590,6 +592,19 @@ export default function ScooterEdit({ scooter, brands: initialBrands, features, 
                                     <div className="space-y-3 pt-1">
                                         <div>
                                             <p className="text-xs font-semibold text-gray-500 mb-1.5">Nieuw merk</p>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Aparte titel (optioneel)</label>
+                                        <input
+                                            type="text"
+                                            value={data.custom_title}
+                                            onChange={(e) => setData('custom_title', e.target.value)}
+                                            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Bijv. BTC Cruise - Technisch top, kapschade"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">Laat leeg om automatisch merk + model + bouwjaar te tonen.</p>
+                                        {errors.custom_title && <p className="mt-1 text-red-500 text-xs">{errors.custom_title}</p>}
+                                    </div>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
