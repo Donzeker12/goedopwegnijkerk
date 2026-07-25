@@ -74,6 +74,22 @@ export default function ReviewsIndex({ reviews }: Props) {
     }
 
     const visibleReviews = data.items.filter((item) => item.name.trim() !== '' || item.text.trim() !== '');
+    const reviewStats = visibleReviews.reduce(
+        (stats, item) => {
+            const rating = Math.max(1, Math.min(5, Number.parseInt(item.rating || '5', 10) || 5));
+
+            return {
+                total: stats.total + 1,
+                sum: stats.sum + rating,
+            };
+        },
+        { total: 0, sum: 0 },
+    );
+
+    const averageRating = reviewStats.total > 0 ? Number((reviewStats.sum / reviewStats.total).toFixed(1)) : 0;
+    const averageStars = reviewStats.total > 0
+        ? '★'.repeat(Math.round(averageRating)) + '☆'.repeat(5 - Math.round(averageRating))
+        : '';
 
     return (
         <AdminLayout title="Reviews beheren">
@@ -239,6 +255,13 @@ export default function ReviewsIndex({ reviews }: Props) {
                                 <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">{data.eyebrow || 'Reviews'}</p>
                                 <h4 className="mt-1 text-2xl font-black text-gray-900">{data.title || 'Wat klanten over ons zeggen'}</h4>
                                 {data.description && <p className="mt-2 text-sm leading-relaxed text-gray-600">{data.description}</p>}
+                                {reviewStats.total > 0 && (
+                                    <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+                                        <span className="font-semibold text-amber-700">{averageStars}</span>
+                                        <span className="font-bold text-gray-900">{averageRating.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} / 5</span>
+                                        <span className="text-gray-600">{reviewStats.total.toLocaleString('nl-NL')} review{reviewStats.total === 1 ? '' : 's'}</span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">

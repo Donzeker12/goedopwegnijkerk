@@ -61,6 +61,23 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
         return item && item.name?.trim() !== '' && item.text?.trim() !== '';
     });
 
+    const reviewStats = visibleReviews.reduce(
+        (stats, item) => {
+            const rating = Math.max(1, Math.min(5, Number.parseInt(item.rating || '5', 10) || 5));
+
+            return {
+                total: stats.total + 1,
+                sum: stats.sum + rating,
+            };
+        },
+        { total: 0, sum: 0 },
+    );
+
+    const averageRating = reviewStats.total > 0 ? Number((reviewStats.sum / reviewStats.total).toFixed(1)) : 0;
+    const averageStars = reviewStats.total > 0
+        ? '★'.repeat(Math.round(averageRating)) + '☆'.repeat(5 - Math.round(averageRating))
+        : '';
+
     const localBusinessSchema = {
         '@context': 'https://schema.org',
         '@type': 'AutoDealer',
@@ -281,6 +298,11 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                             {reviews.description && (
                                 <p className="text-slate-600 mt-3 leading-relaxed">{reviews.description}</p>
                             )}
+                            <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+                                <span className="font-semibold text-amber-700">{averageStars}</span>
+                                <span className="font-bold text-slate-900">{averageRating.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} / 5</span>
+                                <span className="text-slate-600">op basis van {reviewStats.total.toLocaleString('nl-NL')} review{reviewStats.total === 1 ? '' : 's'}</span>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
