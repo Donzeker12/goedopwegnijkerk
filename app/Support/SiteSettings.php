@@ -7,9 +7,68 @@ use InvalidArgumentException;
 
 class SiteSettings
 {
+    private const GROUP_LABELS = [
+        'home' => 'Homepage',
+        'shop' => 'Scooters',
+        'faq' => 'FAQ',
+        'blog' => 'Blog',
+        'about' => 'Over ons',
+        'seo' => 'SEO',
+        'location' => 'Locatiepagina’s',
+        'chat' => 'Chat',
+        'admin' => 'Admin',
+        'default' => 'Overig',
+    ];
+
     public static function definitions(): array
     {
         return config('site_settings.sections', []);
+    }
+
+    public static function groupForSlug(string $slug): string
+    {
+        if (str_starts_with($slug, 'home-')) {
+            return 'home';
+        }
+
+        if (str_starts_with($slug, 'shop-')) {
+            return 'shop';
+        }
+
+        if (str_starts_with($slug, 'faq-')) {
+            return 'faq';
+        }
+
+        if (str_starts_with($slug, 'blog-')) {
+            return 'blog';
+        }
+
+        if (str_starts_with($slug, 'seo-')) {
+            return 'seo';
+        }
+
+        if (str_starts_with($slug, 'scooter-kopen-in-')) {
+            return 'location';
+        }
+
+        if (str_starts_with($slug, 'chat')) {
+            return 'chat';
+        }
+
+        if (str_starts_with($slug, 'admin-')) {
+            return 'admin';
+        }
+
+        if ($slug === 'over-ons' || str_starts_with($slug, 'over-ons-')) {
+            return 'about';
+        }
+
+        return explode('-', $slug, 2)[0] ?: 'default';
+    }
+
+    public static function groupLabel(string $group): string
+    {
+        return self::GROUP_LABELS[$group] ?? ucfirst(str_replace('-', ' ', $group));
     }
 
     public static function navigation(): array
@@ -20,7 +79,10 @@ class SiteSettings
                 'title' => $definition['title'],
                 'description' => $definition['description'] ?? '',
                 'preview_url' => $definition['preview_url'] ?? null,
+                'group' => self::groupForSlug($slug),
+                'group_label' => self::groupLabel(self::groupForSlug($slug)),
             ])
+                ->sortBy(fn (array $item) => $item['group_label'] . '|' . $item['title'])
             ->values()
             ->all();
     }
@@ -43,6 +105,8 @@ class SiteSettings
             'title' => $definition['title'],
             'description' => $definition['description'] ?? '',
             'preview_url' => $definition['preview_url'] ?? null,
+            'group' => self::groupForSlug($slug),
+            'group_label' => self::groupLabel(self::groupForSlug($slug)),
             'fields' => $definition['fields'] ?? [],
             'values' => self::values($slug),
         ];

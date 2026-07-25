@@ -55,6 +55,20 @@ export interface HomeMaintenanceSettings {
     cards: HomeMaintenanceCard[];
 }
 
+export interface HomeReviewItem {
+    name: string;
+    city: string;
+    rating: string;
+    text: string;
+}
+
+export interface HomeReviewsSettings {
+    eyebrow: string;
+    title: string;
+    description: string;
+    items: HomeReviewItem[];
+}
+
 export interface HomeFeaturedSettings {
     eyebrow: string;
     title: string;

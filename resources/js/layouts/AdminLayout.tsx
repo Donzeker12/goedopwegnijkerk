@@ -12,18 +12,67 @@ interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
-const navItems = [
-    { href: '/admin', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/start', label: 'Mobiel', icon: '📱' },
-    { href: '/admin/scooters', label: 'Scooters', icon: '🛵' },
-    { href: '/admin/voorraad', label: 'Voorraad', icon: '📦' },
-    { href: '/admin/financien', label: 'Financien', icon: '💶' },
-    { href: '/admin/chat', label: 'Chat', icon: '💬' },
-    { href: '/admin/push', label: 'Devices', icon: '🔔' },
-    { href: '/admin/blog', label: 'Blog', icon: '📰' },
-    { href: '/admin/paginas/over-ons', label: "Pagina's", icon: '📝' },
-    { href: '/admin/site-instellingen', label: 'Site instellingen', icon: '⚙️' },
-    { href: '/profiel', label: 'Profiel', icon: '👤' },
+interface NavItem {
+    href: string;
+    label: string;
+    icon: string;
+}
+
+interface NavGroup {
+    key: string;
+    label: string;
+    icon: string;
+    items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+    {
+        key: 'overview',
+        label: 'Overzicht',
+        icon: '📊',
+        items: [
+            { href: '/admin', label: 'Dashboard', icon: '📊' },
+            { href: '/admin/start', label: 'Mobiel', icon: '📱' },
+        ],
+    },
+    {
+        key: 'sales',
+        label: 'Verkoop',
+        icon: '🛵',
+        items: [
+            { href: '/admin/scooters', label: 'Scooters', icon: '🛵' },
+            { href: '/admin/voorraad', label: 'Voorraad', icon: '📦' },
+            { href: '/admin/financien', label: 'Financiën', icon: '💶' },
+        ],
+    },
+    {
+        key: 'communication',
+        label: 'Communicatie',
+        icon: '💬',
+        items: [
+            { href: '/admin/chat', label: 'Chat', icon: '💬' },
+            { href: '/admin/push', label: 'Devices', icon: '🔔' },
+        ],
+    },
+    {
+        key: 'content',
+        label: 'Content',
+        icon: '📰',
+        items: [
+            { href: '/admin/blog', label: 'Blog', icon: '📰' },
+            { href: '/admin/reviews', label: 'Reviews', icon: '⭐' },
+            { href: '/admin/paginas/over-ons', label: 'Pagina’s', icon: '📝' },
+        ],
+    },
+    {
+        key: 'settings',
+        label: 'Instellingen',
+        icon: '⚙️',
+        items: [
+            { href: '/admin/site-instellingen', label: 'Site instellingen', icon: '⚙️' },
+            { href: '/profiel', label: 'Profiel', icon: '👤' },
+        ],
+    },
 ];
 
 export default function AdminLayout({ children, title }: Props) {
@@ -52,11 +101,30 @@ export default function AdminLayout({ children, title }: Props) {
     const isIos = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(window.navigator.userAgent);
     const installUnavailable = !isStandalone && !canInstall;
     const pushUnsupported = !('Notification' in window) || !('PushManager' in window);
-
-    const mobileTabs = navItems.filter((item) =>
-        ['/admin/start', '/admin/scooters', '/admin/voorraad', '/admin/financien'].includes(item.href)
-    );
     const shouldUsePollingFallback = !pushEnabled || !isPushSubscribed;
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+        const initialState: Record<string, boolean> = {};
+
+        navGroups.forEach((group) => {
+            initialState[group.key] = group.items.some((item) => isItemActive(item.href, url));
+        });
+
+        return initialState;
+    });
+
+    useEffect(() => {
+        setOpenGroups((current) => {
+            const next = { ...current };
+
+            navGroups.forEach((group) => {
+                if (group.items.some((item) => isItemActive(item.href, url))) {
+                    next[group.key] = true;
+                }
+            });
+
+            return next;
+        });
+    }, [url]);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(display-mode: standalone)');
@@ -318,6 +386,17 @@ export default function AdminLayout({ children, title }: Props) {
         router.visit(href, { preserveScroll: true, preserveState: false });
     }
 
+    function toggleGroup(groupKey: string) {
+        setOpenGroups((current) => ({
+            ...current,
+            [groupKey]: !current[groupKey],
+        }));
+    }
+
+    function isCurrentHref(href: string): boolean {
+        return isItemActive(href, url);
+    }
+
     function renderSidebarContent(closeMenuOnNavigate: boolean) {
         return (
             <>
@@ -390,22 +469,63 @@ export default function AdminLayout({ children, title }: Props) {
                     )}
                 </div>
 
-                <nav className="flex-1 p-3 space-y-1">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => closeMenuOnNavigate && setMenuOpen(false)}
-                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                                url === item.href || (item.href !== '/admin' && url.startsWith(item.href))
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                            }`}
-                        >
-                            <span>{item.icon}</span>
-                            {item.label}
-                        </Link>
-                    ))}
+                <nav className="flex-1 p-3 space-y-2">
+                    {navGroups.map((group) => {
+                        const isOpen = Boolean(openGroups[group.key]);
+                        const groupActive = group.items.some((item) => isCurrentHref(item.href));
+
+                        return (
+                            <div key={group.key} className="rounded-xl border border-gray-800 bg-gray-950/40 overflow-hidden">
+                                <button
+                                    type="button"
+                                    onClick={() => toggleGroup(group.key)}
+                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
+                                        groupActive ? 'text-white bg-gray-800/70' : 'text-gray-200 hover:bg-gray-800/60'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <span className="text-base">{group.icon}</span>
+                                        <span>{group.label}</span>
+                                    </span>
+                                    <span className={`text-xs transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                                </button>
+
+                                <AnimatePresence initial={false}>
+                                    {isOpen && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="px-2 pb-2 pt-1 space-y-1 bg-gray-950/40">
+                                                {group.items.map((item) => {
+                                                    const active = isCurrentHref(item.href);
+
+                                                    return (
+                                                        <Link
+                                                            key={item.href}
+                                                            href={item.href}
+                                                            onClick={() => closeMenuOnNavigate && setMenuOpen(false)}
+                                                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                                                                active
+                                                                    ? 'bg-orange-500 text-white'
+                                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            <span>{item.icon}</span>
+                                                            {item.label}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        );
+                    })}
                 </nav>
 
                 <div className="p-3 border-t border-gray-700 space-y-2">
@@ -462,7 +582,7 @@ export default function AdminLayout({ children, title }: Props) {
             <AnimatePresence>
                 {menuOpen && (
                     <motion.aside
-                        className="print:hidden lg:hidden w-56 bg-gray-900 text-white flex flex-col min-h-screen fixed top-0 left-0 z-50"
+                        className="print:hidden lg:hidden w-72 max-w-[88vw] bg-gray-900 text-white flex flex-col min-h-screen fixed top-0 left-0 z-50"
                         initial={{ x: '-100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
@@ -474,12 +594,12 @@ export default function AdminLayout({ children, title }: Props) {
             </AnimatePresence>
 
             {/* Desktop sidebar */}
-            <aside className="print:hidden hidden lg:flex w-56 bg-gray-900 text-white flex-col min-h-screen fixed top-0 left-0 z-30">
+            <aside className="print:hidden hidden lg:flex w-72 bg-gray-900 text-white flex-col min-h-screen fixed top-0 left-0 z-30">
                 {renderSidebarContent(false)}
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 lg:ml-56 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0 print:ml-0 print:pt-0">
+            <div className="flex-1 lg:ml-72 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0 print:ml-0 print:pt-0">
                 {title && (
                     <div className="print:hidden bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
                         <h1 className="text-xl font-bold text-gray-900">{title}</h1>
@@ -490,8 +610,13 @@ export default function AdminLayout({ children, title }: Props) {
 
             <nav className="print:hidden lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80 pb-safe-bottom">
                 <div className="grid grid-cols-4">
-                    {mobileTabs.map((item) => {
-                        const active = url === item.href || (item.href !== '/admin' && url.startsWith(item.href));
+                    {[
+                        { href: '/admin', label: 'Dashboard', icon: '📊' },
+                        { href: '/admin/scooters', label: 'Scooters', icon: '🛵' },
+                        { href: '/admin/financien', label: 'Financiën', icon: '💶' },
+                        { href: '/admin/site-instellingen', label: 'Instellingen', icon: '⚙️' },
+                    ].map((item) => {
+                        const active = isCurrentHref(item.href);
                         return (
                             <button
                                 key={item.href}
@@ -510,6 +635,10 @@ export default function AdminLayout({ children, title }: Props) {
             </nav>
         </div>
     );
+}
+
+function isItemActive(href: string, url: string): boolean {
+    return url === href || (href !== '/admin' && url.startsWith(href));
 }
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {

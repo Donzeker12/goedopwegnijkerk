@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import ScooterGuaranteeBadge from '../components/ScooterGuaranteeBadge';
 import SeoHead from '../components/SeoHead';
 import AppLayout from '../layouts/AppLayout';
-import type { HomeCtaSettings, HomeFeaturedSettings, HomeHeroSettings, HomeInfoSettings, HomeMaintenanceSettings, HomeQualitySettings } from '../types/site-settings';
+import type { HomeCtaSettings, HomeFeaturedSettings, HomeHeroSettings, HomeInfoSettings, HomeMaintenanceSettings, HomeQualitySettings, HomeReviewsSettings } from '../types/site-settings';
 
 interface Scooter {
     id: number;
@@ -38,6 +38,7 @@ interface Props {
         region: string;
         country: string;
     };
+    reviews: HomeReviewsSettings;
     siteSettings: {
         'home-hero': HomeHeroSettings;
         'home-quality': HomeQualitySettings;
@@ -48,13 +49,17 @@ interface Props {
     };
 }
 
-export default function Home({ featured, latestBlogs, cityLandingPages, business, siteSettings }: Props) {
+export default function Home({ featured, latestBlogs, cityLandingPages, business, reviews, siteSettings }: Props) {
     const hero = siteSettings['home-hero'];
     const quality = siteSettings['home-quality'];
     const maintenance = siteSettings['home-maintenance'];
     const featuredSection = siteSettings['home-featured'];
     const cta = siteSettings['home-cta'];
     const info = siteSettings['home-info'];
+
+    const visibleReviews = (reviews.items ?? []).filter((item) => {
+        return item && item.name?.trim() !== '' && item.text?.trim() !== '';
+    });
 
     const localBusinessSchema = {
         '@context': 'https://schema.org',
@@ -266,6 +271,38 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                     </div>
                 </div>
             </section>
+
+            {visibleReviews.length > 0 && (
+                <section className="py-16 bg-white border-b border-slate-100">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="max-w-3xl mb-8">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{reviews.eyebrow}</p>
+                            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mt-2">{reviews.title}</h2>
+                            {reviews.description && (
+                                <p className="text-slate-600 mt-3 leading-relaxed">{reviews.description}</p>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {visibleReviews.map((item, index) => {
+                                const rating = Math.max(1, Math.min(5, Number.parseInt(item.rating || '5', 10) || 5));
+                                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+                                return (
+                                    <article key={`${item.name}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+                                        <div className="text-amber-500 text-lg tracking-wide">{stars}</div>
+                                        <p className="mt-3 text-sm text-slate-700 leading-relaxed">{item.text}</p>
+                                        <div className="mt-4 pt-3 border-t border-slate-200">
+                                            <p className="font-bold text-slate-900 text-sm">{item.name}</p>
+                                            {item.city && <p className="text-xs text-slate-500">{item.city}</p>}
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Featured scooters */}
             {featured.length > 0 && (

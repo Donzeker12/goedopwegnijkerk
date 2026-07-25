@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\HomepageReviewsController;
 use App\Http\Controllers\Admin\GoogleImageController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\PageContentController;
@@ -142,6 +143,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/blog/{post}/fotos', [AdminBlogController::class, 'uploadPhotos'])->name('blog.photos.store');
     Route::patch('/blog/{post}/fotos/{photo}/cover', [AdminBlogController::class, 'setCover'])->name('blog.photos.cover');
     Route::delete('/blog/{post}/fotos/{photo}', [AdminBlogController::class, 'destroyPhoto'])->name('blog.photos.destroy');
+
+    // Reviews
+    Route::get('/reviews', [HomepageReviewsController::class, 'index'])->name('reviews.index');
+    Route::put('/reviews', [HomepageReviewsController::class, 'update'])->name('reviews.update');
 
     // Chat
     Route::get('/chat', [AdminChatController::class, 'index'])->name('chat.index');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
 use App\Models\Scooter;
+use App\Support\HomepageReviews;
 use App\Support\SiteSettings;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -55,6 +56,7 @@ class HomeController extends Controller
                 'home-cta',
                 'home-info',
             ]),
+            'reviews' => HomepageReviews::values(),
             'cityLandingPages' => collect(config('seo.city_pages', []))
                 ->map(fn (array $city, string $slug) => [
                     'slug' => $slug,
