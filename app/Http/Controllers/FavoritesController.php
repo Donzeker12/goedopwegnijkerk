@@ -87,7 +87,7 @@ class FavoritesController extends Controller
         $favorites = Favorite::where('user_id', $user->id)
             ->with([
                 'scooter' => function ($query) {
-                    $query->with(['brand', 'scooterModel', 'photos', 'reviews']);
+                    $query->with(['brand', 'scooterModel', 'photos']);
                 },
             ])
             ->latest('created_at')
@@ -121,7 +121,7 @@ class FavoritesController extends Controller
         }
 
         $scooters = Scooter::whereIn('id', $ids)
-            ->with(['brand', 'scooterModel', 'photos', 'reviews'])
+            ->with(['brand', 'scooterModel', 'photos'])
             ->get()
             ->map(function (Scooter $scooter) {
                 return [
@@ -157,7 +157,7 @@ class FavoritesController extends Controller
             $favorites = Favorite::where('user_id', $user->id)
                 ->with([
                     'scooter' => function ($query) {
-                        $query->with(['brand', 'scooterModel', 'photos', 'reviews']);
+                        $query->with(['brand', 'scooterModel', 'photos']);
                     },
                 ])
                 ->latest('created_at')
@@ -190,7 +190,7 @@ class FavoritesController extends Controller
         }
 
         $scooters = Scooter::whereIn('id', $ids)
-            ->with(['brand', 'scooterModel', 'photos', 'reviews'])
+            ->with(['brand', 'scooterModel', 'photos'])
             ->get()
             ->map(function (Scooter $scooter) {
                 return [
