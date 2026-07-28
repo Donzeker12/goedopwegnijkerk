@@ -22,7 +22,20 @@ export default function FavoritesPage() {
     const isLoggedIn = (props.auth as any)?.user;
     const [favorites, setFavorites] = useState<Scooter[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+
+    const normalizeFavorites = (value: unknown): Scooter[] => {
+        return Array.isArray(value) ? (value as Scooter[]) : [];
+    };
+
+    const readGuestFavoriteIds = (): number[] => {
+        try {
+            const raw = localStorage.getItem('favorites');
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed.filter((id) => Number.isInteger(id)) : [];
+        } catch {
+            return [];
+        }
+    };
 
     useEffect(() => {
         const loadFavorites = async () => {
@@ -33,14 +46,14 @@ export default function FavoritesPage() {
                 try {
                     const response = await fetch('/api/favorieten/lijst');
                     const data = await response.json();
-                    setFavorites(data.favorites);
+                    setFavorites(normalizeFavorites(data?.favorites));
                 } catch (error) {
                     console.error('Error loading favorites:', error);
+                    setFavorites([]);
                 }
             } else {
                 // Load from localStorage for guest users
-                const ids = JSON.parse(localStorage.getItem('favorites') || '[]');
-                setFavoriteIds(ids);
+                const ids = readGuestFavoriteIds();
 
                 if (ids.length > 0) {
                     try {
@@ -53,10 +66,13 @@ export default function FavoritesPage() {
                             body: JSON.stringify({ ids }),
                         });
                         const data = await response.json();
-                        setFavorites(data.favorites);
+                        setFavorites(normalizeFavorites(data?.favorites));
                     } catch (error) {
                         console.error('Error loading favorites:', error);
+                        setFavorites([]);
                     }
+                } else {
+                    setFavorites([]);
                 }
             }
 
