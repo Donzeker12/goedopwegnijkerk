@@ -59,31 +59,30 @@ export default function ContactPage() {
                         )}
 
                         <form onSubmit={submit} className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label className="mb-2 block text-sm font-semibold text-slate-700">Naam</label>
-                                    <input
-                                        value={form.data.name}
-                                        onChange={(e) => form.setData('name', e.target.value)}
-                                        className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none ring-0 focus:border-orange-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="mb-2 block text-sm font-semibold text-slate-700">E-mail</label>
-                                    <input
-                                        type="email"
-                                        value={form.data.email}
-                                        onChange={(e) => form.setData('email', e.target.value)}
-                                        className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none ring-0 focus:border-orange-500"
-                                        required
-                                    />
-                                </div>
+                            <div>
+                                <label className="mb-2 block text-sm font-semibold text-slate-700">Naam</label>
+                                <input
+                                    value={form.data.name}
+                                    onChange={(e) => form.setData('name', e.target.value)}
+                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none ring-0 focus:border-orange-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-semibold text-slate-700">E-mail</label>
+                                <input
+                                    type="email"
+                                    value={form.data.email}
+                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none ring-0 focus:border-orange-500"
+                                    required
+                                />
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label className="mb-2 block text-sm font-semibold text-slate-700">Telefoon</label>
+                                    <label className="mb-2 block text-sm font-semibold text-slate-700">Telefoon <span className="text-xs font-normal text-slate-500">(optioneel)</span></label>
                                     <input
                                         value={form.data.phone}
                                         onChange={(e) => form.setData('phone', e.target.value)}
@@ -91,7 +90,7 @@ export default function ContactPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="mb-2 block text-sm font-semibold text-slate-700">Onderwerp</label>
+                                    <label className="mb-2 block text-sm font-semibold text-slate-700">Onderwerp <span className="text-xs font-normal text-slate-500">(optioneel)</span></label>
                                     <input
                                         value={form.data.subject}
                                         onChange={(e) => form.setData('subject', e.target.value)}
