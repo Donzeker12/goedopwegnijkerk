@@ -468,6 +468,9 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                                 {item.label}
                             </Link>
                         ))}
+                        <Link href="/contact" className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-100 transition-colors">
+                            Contact opnemen
+                        </Link>
                     </div>
 
                     {cityLandingPages.length > 0 && (

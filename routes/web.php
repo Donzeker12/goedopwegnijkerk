@@ -3,6 +3,7 @@
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\Admin\BrandController;
@@ -35,6 +36,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/over-ons', [AboutController::class, 'index'])->name('about');
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{post}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');

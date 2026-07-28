@@ -36,6 +36,7 @@ export default function AppLayout({ children }: Props) {
         { href: '/blog', label: 'Blog', icon: '📰' },
         { href: '/over-ons', label: 'Over Ons', icon: '🙋' },
         { href: '/faq', label: 'FAQ & Garantie', icon: '🛠️' },
+        { href: '/contact', label: 'Contact', icon: '📧' },
         ...((authUser?.is_admin) ? [{ href: '/admin', label: 'Dashboard', icon: '📊' }] : []),
     ];
 
