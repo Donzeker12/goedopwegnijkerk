@@ -8,9 +8,10 @@ interface Props {
 }
 
 export default function AppLayout({ children }: Props) {
-    const { url, props } = usePage<{ auth?: { user?: User | null } }>();
+    const { url, props } = usePage<{ auth?: { user?: User | null }; siteSettings?: Record<string, any> }>();
     const [menuOpen, setMenuOpen] = useState(false);
     const authUser = props.auth?.user;
+    const whatsappNumber = props.siteSettings?.['admin-whatsapp']?.whatsapp_number || '31683575477';
 
     const showFloatingChat = !url.startsWith('/chat');
 
@@ -168,7 +169,7 @@ export default function AppLayout({ children }: Props) {
             {showFloatingChat && (
                 <div className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 flex flex-col gap-3">
                     <a
-                        href="https://wa.me/31683575477"
+                        href={`https://wa.me/${whatsappNumber}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group inline-flex items-center gap-2.5 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/35 px-4 py-3 sm:px-5 sm:py-3.5 transition-all"

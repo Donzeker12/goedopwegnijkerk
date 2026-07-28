@@ -1,0 +1,77 @@
+    public function create(): Response
+    {
+        if (! request()->user()?->canManageFinance()) {
+            abort(403, 'Geen rechten om voorraad financieel te beheren.');
+        }
+
+        $scooters = Scooter::with(['brand', 'scooterModel'])
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Scooter $scooter) => [
+                'id' => $scooter->id,
+                'naam' => $scooter->display_name,
+            ]);
+
+        return Inertia::render('admin/inventory/create', [
+            'scooters' => $scooters,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        if (! $request->user()?->canManageFinance()) {
+            abort(403, 'Geen rechten om voorraad financieel te beheren.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'part_brand' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'quantity' => ['required', 'integer', 'min:0', 'max:999'],
+            'minimum_stock' => ['required', 'integer', 'min:0', 'max:999'],
+            'cost' => ['required', 'numeric', 'min:0'],
+            'procurement_status' => ['required', 'in:nodig,besteld,binnen,geplaatst'],
+            'scooter_id' => ['nullable', 'integer', 'exists:scooters,id'],
+        ]);
+
+        $part = ScooterPart::create([
+            'name' => $validated['name'],
+            'part_brand' => $validated['part_brand'] ?? null,
+            'category' => ($validated['category'] ?? null) === 'Overig' ? null : ($validated['category'] ?? null),
+            'quantity' => $validated['quantity'],
+            'minimum_stock' => $validated['minimum_stock'],
+            'cost' => $validated['cost'],
+            'procurement_status' => $validated['procurement_status'],
+            'scooter_id' => $validated['scooter_id'] ?? null,
+            'purchased_at' => in_array($validated['procurement_status'], ['binnen', 'geplaatst'], true)
+                ? now()->toDateString()
+                : null,
+            'placed_at' => $validated['procurement_status'] === 'geplaatst'
+                ? now()->toDateString()
+                : null,
+        ]);
+
+        if (
+            $part->scooter_id
+            && in_array($part->procurement_status, ['besteld', 'binnen', 'geplaatst'], true)
+            && $part->total_cost > 0
+        ) {
+            PurchaseEntry::create([
+                'scooter_id' => $part->scooter_id,
+                'scooter_part_id' => $part->id,
+                'category' => 'onderdeel',
+                'description' => 'Onderdeel: ' . $part->name,
+                'amount' => $part->total_cost,
+                'purchased_at' => $part->purchased_at?->format('Y-m-d') ?: now()->toDateString(),
+                'payment_status' => 'open',
+                'receipt_path' => $part->receipt_path,
+                'notes' => $part->notes,
+            ]);
+        }
+
+        if ($part->procurement_status === 'besteld') {
+            PartOrderNotifier::send($part, (string) optional($request->user())->name, 'Voorraad / Nieuw product');
+        }
+
+        return redirect()->route('admin.inventory.index')->with('success', 'Product toegevoegd aan voorraad.');
+    }

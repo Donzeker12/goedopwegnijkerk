@@ -287,5 +287,15 @@ return [
                 'button_href' => '/chat',
             ],
         ],
+        'admin-whatsapp' => [
+            'title' => 'WhatsApp contactnummer',
+            'description' => 'Stel het WhatsApp nummer in dat wordt weergegeven in de WhatsApp knop.',
+            'fields' => [
+                ['key' => 'whatsapp_number', 'label' => 'WhatsApp nummer', 'type' => 'text', 'help' => 'Gebruik international format (bijv. 31683575477)'],
+            ],
+            'defaults' => [
+                'whatsapp_number' => '31683575477',
+            ],
+        ],
     ],
 ];

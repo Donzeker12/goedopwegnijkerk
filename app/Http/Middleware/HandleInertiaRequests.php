@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SiteSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,6 +36,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $siteSettings = [];
+        foreach (SiteSettings::definitions() as $slug => $definition) {
+            $siteSettings[$slug] = SiteSettings::section($slug);
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -45,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                 'enabled' => (bool) config('push.enabled'),
                 'vapid_public_key' => (string) config('push.vapid.public_key', ''),
             ],
+            'siteSettings' => $siteSettings,
         ];
     }
 }
