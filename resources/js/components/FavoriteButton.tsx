@@ -20,22 +20,42 @@ export default function FavoriteButton({ scooterId }: FavoriteButtonProps) {
                 .catch(() => setIsFavorited(false));
         } else {
             // Check localStorage if not logged in
-            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-            setIsFavorited(favorites.includes(scooterId));
+            try {
+                const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+                const favoriteIds = Array.isArray(favorites)
+                    ? favorites
+                        .map((id) => Number(id))
+                        .filter((id) => Number.isInteger(id) && id > 0)
+                    : [];
+                setIsFavorited(favoriteIds.includes(scooterId));
+            } catch {
+                setIsFavorited(false);
+            }
         }
     }, [scooterId, isLoggedIn]);
 
     const handleToggle = async () => {
         if (!isLoggedIn) {
             // Handle localStorage for non-logged-in users
-            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-            if (favorites.includes(scooterId)) {
-                const updated = favorites.filter((id: number) => id !== scooterId);
-                localStorage.setItem('favorites', JSON.stringify(updated));
-                setIsFavorited(false);
-            } else {
-                favorites.push(scooterId);
-                localStorage.setItem('favorites', JSON.stringify(favorites));
+            try {
+                const raw = JSON.parse(localStorage.getItem('favorites') || '[]');
+                const favorites = Array.isArray(raw)
+                    ? raw
+                        .map((id) => Number(id))
+                        .filter((id) => Number.isInteger(id) && id > 0)
+                    : [];
+
+                if (favorites.includes(scooterId)) {
+                    const updated = favorites.filter((id) => id !== scooterId);
+                    localStorage.setItem('favorites', JSON.stringify(updated));
+                    setIsFavorited(false);
+                } else {
+                    const updated = [...new Set([...favorites, scooterId])];
+                    localStorage.setItem('favorites', JSON.stringify(updated));
+                    setIsFavorited(true);
+                }
+            } catch {
+                localStorage.setItem('favorites', JSON.stringify([scooterId]));
                 setIsFavorited(true);
             }
             return;

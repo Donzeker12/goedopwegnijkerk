@@ -31,7 +31,11 @@ export default function FavoritesPage() {
         try {
             const raw = localStorage.getItem('favorites');
             const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed.filter((id) => Number.isInteger(id)) : [];
+            return Array.isArray(parsed)
+                ? parsed
+                    .map((id) => Number(id))
+                    .filter((id) => Number.isInteger(id) && id > 0)
+                : [];
         } catch {
             return [];
         }
@@ -57,14 +61,9 @@ export default function FavoritesPage() {
 
                 if (ids.length > 0) {
                     try {
-                        const response = await fetch('/api/favorieten/lijst', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-Token': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
-                            },
-                            body: JSON.stringify({ ids }),
-                        });
+                        const params = new URLSearchParams();
+                        ids.forEach((id) => params.append('ids[]', String(id)));
+                        const response = await fetch(`/api/favorieten/lijst?${params.toString()}`);
                         const data = await response.json();
                         setFavorites(normalizeFavorites(data?.favorites));
                     } catch (error) {
