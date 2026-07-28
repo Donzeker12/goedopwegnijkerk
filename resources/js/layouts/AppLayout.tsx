@@ -34,6 +34,7 @@ export default function AppLayout({ children }: Props) {
     const navLinks = [
         { href: '/', label: 'Home', icon: '🏠' },
         { href: '/scooters', label: 'Scooters', icon: '🛵' },
+        { href: '/favorieten', label: 'Favorieten', icon: '❤️' },
         { href: '/over-ons', label: 'Over Ons', icon: '🙋' },
         { href: '/faq', label: 'FAQ & Garantie', icon: '🛠️' },
         { href: '/contact', label: 'Contact', icon: '📧' },

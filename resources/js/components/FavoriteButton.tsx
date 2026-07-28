@@ -12,19 +12,32 @@ export default function FavoriteButton({ scooterId }: FavoriteButtonProps) {
     const isLoggedIn = (props.auth as any)?.user;
 
     useEffect(() => {
-        if (!isLoggedIn) return;
-
-        // Check if this scooter is favorited
-        fetch(`/api/favorieten/${scooterId}/check`)
-            .then((res) => res.json())
-            .then((data) => setIsFavorited(data.is_favorited))
-            .catch(() => setIsFavorited(false));
+        if (isLoggedIn) {
+            // Check database if logged in
+            fetch(`/api/favorieten/${scooterId}/check`)
+                .then((res) => res.json())
+                .then((data) => setIsFavorited(data.is_favorited))
+                .catch(() => setIsFavorited(false));
+        } else {
+            // Check localStorage if not logged in
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            setIsFavorited(favorites.includes(scooterId));
+        }
     }, [scooterId, isLoggedIn]);
 
     const handleToggle = async () => {
         if (!isLoggedIn) {
-            // Redirect to login
-            window.location.href = '/login';
+            // Handle localStorage for non-logged-in users
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            if (favorites.includes(scooterId)) {
+                const updated = favorites.filter((id: number) => id !== scooterId);
+                localStorage.setItem('favorites', JSON.stringify(updated));
+                setIsFavorited(false);
+            } else {
+                favorites.push(scooterId);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                setIsFavorited(true);
+            }
             return;
         }
 
