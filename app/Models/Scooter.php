@@ -85,6 +85,11 @@ class Scooter extends Model
         return $this->hasMany(ScooterTestRideRequest::class);
     }
 
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
     public function primaryPhoto(): ?ScooterPhoto
     {
         return $this->photos()->where('is_primary', true)->first()

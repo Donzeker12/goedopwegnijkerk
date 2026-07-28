@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ChatController;
@@ -112,6 +113,12 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware('auth')->group(function () {
     Route::get('/profiel', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profiel/wachtwoord', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+    // Favorites routes
+    Route::post('/api/favorieten/{scooter}/toggle', [FavoritesController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('/api/favorieten/{scooter}/check', [FavoritesController::class, 'isFavorited'])->name('favorites.check');
+    Route::get('/api/favorieten/ids', [FavoritesController::class, 'listFavoritedIds'])->name('favorites.ids');
+    Route::get('/profiel/favorieten', [FavoritesController::class, 'list'])->name('favorites.list');
 });
 
 // Admin routes (protected)

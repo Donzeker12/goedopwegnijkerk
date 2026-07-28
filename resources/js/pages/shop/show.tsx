@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import ScooterGuaranteeBadge from '../../components/ScooterGuaranteeBadge';
 import SeoHead from '../../components/SeoHead';
+import FavoriteButton from '../../components/FavoriteButton';
 import AppLayout from '../../layouts/AppLayout';
 
 interface Photo {
@@ -406,6 +407,11 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
                         <div className="text-4xl font-bold text-orange-500 mb-6">
                             €{scooter.prijs.toLocaleString('nl-NL', { minimumFractionDigits: 0 })}
                         </div>
+                        
+                        <div className="mb-6">
+                            <FavoriteButton scooterId={scooter.id} />
+                        </div>
+                        
                         <ScooterGuaranteeBadge variant="block" className="mb-6" />
 
                         <p className="text-sm text-gray-600 mb-6 leading-relaxed">
