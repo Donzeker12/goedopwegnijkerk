@@ -166,7 +166,17 @@ export default function AppLayout({ children }: Props) {
             <main className="flex-1">{children}</main>
 
             {showFloatingChat && (
-                <div className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50">
+                <div className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 flex flex-col gap-3">
+                    <a
+                        href="https://wa.me/31683575477"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-2.5 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/35 px-4 py-3 sm:px-5 sm:py-3.5 transition-all"
+                        aria-label="Stuur WhatsApp bericht"
+                    >
+                        <span className="text-lg leading-none">💬</span>
+                        <span className="font-semibold text-sm sm:text-base">WhatsApp</span>
+                    </a>
                     <Link
                         href={chatHref}
                         className="group inline-flex items-center gap-2.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-500/35 px-4 py-3 sm:px-5 sm:py-3.5 transition-all"
