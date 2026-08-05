@@ -215,7 +215,7 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
                         {maintenanceCategories.map((card, index) => (
                             <article
                                 key={`${card.title}-${index}`}
