@@ -61,6 +61,7 @@ interface Props {
 
 export default function Home({ featured, latestBlogs, cityLandingPages, business, reviews, maintenanceCategories, siteSettings }: Props) {
     const showCityLandingPages = false;
+    const showInfoSection = false;
 
     const hero = siteSettings['home-hero'];
     const quality = siteSettings['home-quality'];
@@ -428,42 +429,44 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                 </div>
             </section>
 
-            <section className="py-14 bg-white border-t border-slate-100">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{info.title}</h2>
-                    <p className="text-slate-600 mt-3 leading-relaxed">
-                        {info.description}
-                    </p>
+            {showInfoSection && (
+                <section className="py-14 bg-white border-t border-slate-100">
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{info.title}</h2>
+                        <p className="text-slate-600 mt-3 leading-relaxed">
+                            {info.description}
+                        </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-                        {info.links.map((item) => (
-                            <Link key={`${item.label}-${item.href}`} href={item.href} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
-                                {item.label}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                            {info.links.map((item) => (
+                                <Link key={`${item.label}-${item.href}`} href={item.href} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+                                    {item.label}
+                                </Link>
+                            ))}
+                            <Link href="/contact" className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-100 transition-colors">
+                                Contact opnemen
                             </Link>
-                        ))}
-                        <Link href="/contact" className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-100 transition-colors">
-                            Contact opnemen
-                        </Link>
-                    </div>
-
-                    {showCityLandingPages && cityLandingPages.length > 0 && (
-                        <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-700">Ook gevonden in de regio</h3>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {cityLandingPages.map((cityPage) => (
-                                    <Link
-                                        key={cityPage.slug}
-                                        href={`/scooter-kopen-in-${cityPage.slug}`}
-                                        className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 transition-colors"
-                                    >
-                                        Scooter kopen in {cityPage.name}
-                                    </Link>
-                                ))}
-                            </div>
                         </div>
-                    )}
-                </div>
-            </section>
+
+                        {showCityLandingPages && cityLandingPages.length > 0 && (
+                            <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                                <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-700">Ook gevonden in de regio</h3>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {cityLandingPages.map((cityPage) => (
+                                        <Link
+                                            key={cityPage.slug}
+                                            href={`/scooter-kopen-in-${cityPage.slug}`}
+                                            className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 transition-colors"
+                                        >
+                                            Scooter kopen in {cityPage.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
+            )}
         </AppLayout>
     );
 }
