@@ -219,20 +219,20 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         {maintenanceCategories.map((card, index) => (
                             <article
                                 key={`${card.title}-${index}`}
-                                className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
+                                className="relative isolate overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
                             >
                                 {card.image && (
                                     <>
                                         <img
                                             src={card.image}
                                             alt={card.title}
-                                            className="absolute inset-0 h-full w-full object-cover"
+                                            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
                                         />
-                                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.55)_0%,rgba(2,6,23,0.82)_100%)]" />
+                                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.55)_0%,rgba(2,6,23,0.82)_100%)]" />
                                     </>
                                 )}
 
-                                <div className="relative">
+                                <div className="relative z-10">
                                     <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-lg mb-4 ${card.image ? 'bg-white/15 text-white border border-white/30' : 'bg-slate-900 text-white'}`}>
                                         {card.icon}
                                     </div>
@@ -240,7 +240,7 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                                     <p className={`mt-2 text-sm leading-relaxed min-h-16 ${card.image ? 'text-slate-100' : 'text-slate-600'}`}>{card.description}</p>
                                 </div>
 
-                                <div className="mt-6 flex flex-wrap gap-2">
+                                <div className="relative z-10 mt-6 flex flex-wrap gap-2">
                                     <Link
                                         href={card.maintenance_href}
                                         className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${card.image ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
