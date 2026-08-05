@@ -128,6 +128,13 @@ class HomeController extends Controller
         }
 
         if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '//')) {
+            $path = parse_url($image, PHP_URL_PATH);
+
+            // Uploaded media should stay on the current domain/protocol.
+            if (is_string($path) && str_starts_with($path, '/storage/')) {
+                return $path;
+            }
+
             return $image;
         }
 
