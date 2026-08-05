@@ -60,6 +60,8 @@ interface Props {
 }
 
 export default function Home({ featured, latestBlogs, cityLandingPages, business, reviews, maintenanceCategories, siteSettings }: Props) {
+    const showCityLandingPages = false;
+
     const hero = siteSettings['home-hero'];
     const quality = siteSettings['home-quality'];
     const maintenance = siteSettings['home-maintenance'];
@@ -444,7 +446,7 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         </Link>
                     </div>
 
-                    {cityLandingPages.length > 0 && (
+                    {showCityLandingPages && cityLandingPages.length > 0 && (
                         <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
                             <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-700">Ook gevonden in de regio</h3>
                             <div className="mt-3 flex flex-wrap gap-2">
