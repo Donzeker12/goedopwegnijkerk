@@ -18,6 +18,7 @@ class SiteSettings
         'chat' => 'Chat',
         'admin' => 'Admin',
         'maintenance' => 'Onderhoud',
+        'sales' => 'Verkoop',
         'default' => 'Overig',
     ];
 
@@ -60,6 +61,10 @@ class SiteSettings
             return 'maintenance';
         }
 
+        if (str_starts_with($slug, 'sales-')) {
+            return 'sales';
+        }
+
         if (str_starts_with($slug, 'admin-')) {
             return 'admin';
         }
@@ -79,6 +84,7 @@ class SiteSettings
     public static function navigation(): array
     {
         return collect(self::definitions())
+            ->filter(fn (array $definition) => ! ($definition['hidden_in_site_settings'] ?? false))
             ->map(fn (array $definition, string $slug) => [
                 'slug' => $slug,
                 'title' => $definition['title'],

@@ -46,6 +46,17 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        key: 'categories',
+        label: 'Categorieën',
+        icon: '🧩',
+        items: [
+            { href: '/admin/categorieen/fiets', label: 'Fiets', icon: '🚴' },
+            { href: '/admin/categorieen/e-bike', label: 'E-bike', icon: '⚡' },
+            { href: '/admin/categorieen/fatbike', label: 'Fatbike', icon: '🚲' },
+            { href: '/admin/categorieen/scooter', label: 'Scooter', icon: '🛵' },
+        ],
+    },
+    {
         key: 'communication',
         label: 'Communicatie',
         icon: '💬',

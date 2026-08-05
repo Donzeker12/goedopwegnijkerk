@@ -13,6 +13,13 @@ use Inertia\Response;
 
 class HomeController extends Controller
 {
+    private const MAINTENANCE_CATEGORY_SECTIONS = [
+        'maintenance-bike',
+        'maintenance-ebike',
+        'maintenance-fatbike',
+        'maintenance-scooter',
+    ];
+
     public function index(): Response
     {
         $featured = Scooter::with(['brand', 'scooterModel', 'photos'])
@@ -67,6 +74,8 @@ class HomeController extends Controller
                 ->all();
         }
 
+        $maintenanceCategorySettings = SiteSettings::many(self::MAINTENANCE_CATEGORY_SECTIONS);
+
         return Inertia::render('home', [
             'featured' => $featured,
             'latestBlogs' => $latestBlogs,
@@ -78,6 +87,21 @@ class HomeController extends Controller
                 'home-cta',
                 'home-info',
             ]),
+            'maintenanceCategories' => collect(self::MAINTENANCE_CATEGORY_SECTIONS)
+                ->map(function (string $slug) use ($maintenanceCategorySettings) {
+                    $item = $maintenanceCategorySettings[$slug] ?? [];
+
+                    return [
+                        'icon' => (string) ($item['card_icon'] ?? ''),
+                        'title' => (string) ($item['card_title'] ?? ''),
+                        'description' => (string) ($item['card_description'] ?? ''),
+                        'maintenance_label' => 'Onderhoud',
+                        'maintenance_href' => (string) ($item['card_maintenance_href'] ?? '/onderhoud'),
+                        'sales_label' => 'Verkoop',
+                        'sales_href' => (string) ($item['card_sales_href'] ?? '/contact'),
+                    ];
+                })
+                ->values(),
             'reviews' => [
                 'eyebrow' => $reviewSettings['eyebrow'] ?? 'Reviews',
                 'title' => $reviewSettings['title'] ?? 'Wat klanten over ons zeggen',

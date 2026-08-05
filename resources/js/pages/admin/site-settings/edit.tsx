@@ -1,18 +1,18 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { type ChangeEvent, type FormEvent, useMemo } from 'react';
+import { type ChangeEvent, type FormEvent, useMemo, useState } from 'react';
 import TipTapEditor from '../../../components/TipTapEditor';
 import AdminLayout from '../../../layouts/AdminLayout';
 
 interface RepeaterFieldDefinition {
     key: string;
     label: string;
-    type: 'text' | 'textarea' | 'url';
+    type: 'text' | 'textarea' | 'url' | 'image';
 }
 
 interface FieldDefinition {
     key: string;
     label: string;
-    type: 'text' | 'textarea' | 'url' | 'repeater';
+    type: 'text' | 'textarea' | 'url' | 'image' | 'repeater';
     itemLabel?: string;
     fields?: RepeaterFieldDefinition[];
 }
@@ -57,6 +57,7 @@ function shouldUseTipTapField(sectionSlug: string, fieldKey: string): boolean {
 export default function SiteSettingsEdit({ sections, section }: Props) {
     const { props } = usePage<{ flash?: { success?: string } }>();
     const flash = props.flash;
+    const [uploadingField, setUploadingField] = useState<string | null>(null);
 
     const { data, setData, put, processing } = useForm<{ values: Record<string, string | Array<Record<string, string>>> }>({
         values: section.values,
@@ -147,6 +148,50 @@ export default function SiteSettingsEdit({ sections, section }: Props) {
             ...data.values,
             [fieldKey]: items,
         });
+    }
+
+    async function handleImageUpload(fieldKey: string, fileList: FileList | null) {
+        const file = fileList?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        if (!csrf) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('field', fieldKey);
+        formData.append('image', file);
+
+        setUploadingField(fieldKey);
+
+        try {
+            const response = await fetch(`/admin/site-instellingen/${section.slug}/afbeelding`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    Accept: 'application/json',
+                },
+                body: formData,
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload mislukt');
+            }
+
+            const payload = (await response.json()) as { url?: string };
+            updateField(fieldKey, payload.url ?? '');
+        } catch (error) {
+            console.error(error);
+            alert('Uploaden is niet gelukt. Probeer het opnieuw.');
+        } finally {
+            setUploadingField(null);
+        }
     }
 
     return (
@@ -324,6 +369,35 @@ export default function SiteSettingsEdit({ sections, section }: Props) {
                                         rows={6}
                                         className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     />
+                                ) : field.type === 'image' ? (
+                                    <div className="space-y-3">
+                                        {asString(data.values[field.key]) && (
+                                            <img
+                                                src={asString(data.values[field.key])}
+                                                alt={field.label}
+                                                className="h-44 w-full rounded-xl border border-gray-200 object-cover"
+                                            />
+                                        )}
+                                        <input
+                                            type="text"
+                                            value={asString(data.values[field.key])}
+                                            onChange={(event) => updateField(field.key, event.target.value)}
+                                            placeholder="https://..."
+                                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        />
+                                        <label className="inline-flex cursor-pointer items-center rounded-lg bg-gray-800 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-700">
+                                            {uploadingField === field.key ? 'Uploaden...' : 'Afbeelding uploaden'}
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                                className="hidden"
+                                                onChange={(event) => {
+                                                    void handleImageUpload(field.key, event.target.files);
+                                                    event.currentTarget.value = '';
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
                                 ) : (
                                     <input
                                         type="text"

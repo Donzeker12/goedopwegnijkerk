@@ -52,21 +52,28 @@ export interface HomeMaintenanceServiceCard {
     icon: string;
     title: string;
     description: string;
-    button_label: string;
-    button_href: string;
+    maintenance_label: string;
+    maintenance_href: string;
+    sales_label: string;
+    sales_href: string;
 }
 
 export interface HomeMaintenanceSettings {
     eyebrow: string;
     title: string;
     description: string;
-    service_cards: HomeMaintenanceServiceCard[];
 }
 
 export interface MaintenancePageSettings {
+    hero_image: string;
     eyebrow: string;
     title: string;
     description: string;
+    card_icon: string;
+    card_title: string;
+    card_description: string;
+    card_maintenance_href: string;
+    card_sales_href: string;
     small_badge: string;
     small_title: string;
     small_description: string;
@@ -79,6 +86,20 @@ export interface MaintenancePageSettings {
     large_items: string;
     large_price_label: string;
     large_price: string;
+}
+
+export interface SalesPageSettings {
+    hero_image: string;
+    eyebrow: string;
+    title: string;
+    description: string;
+    intro_title: string;
+    intro_text: string;
+    usp_items: string;
+    primary_cta_label: string;
+    primary_cta_href: string;
+    secondary_cta_label: string;
+    secondary_cta_href: string;
 }
 
 export interface HomeReviewItem {

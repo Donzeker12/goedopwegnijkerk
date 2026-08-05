@@ -34,6 +34,8 @@ function renderItems(items: string) {
 }
 
 export default function MaintenanceShow({ type, settings }: Props) {
+    const hasHeroImage = (settings.hero_image ?? '').trim() !== '';
+
     return (
         <AppLayout>
             <SeoHead
@@ -47,7 +49,18 @@ export default function MaintenanceShow({ type, settings }: Props) {
                 ]}
             />
 
-            <section className="py-16 bg-slate-50 border-y border-slate-200/80">
+            <section className="relative overflow-hidden py-16 bg-slate-50 border-y border-slate-200/80">
+                {hasHeroImage && (
+                    <>
+                        <img
+                            src={settings.hero_image}
+                            alt={settings.title}
+                            className="absolute inset-0 h-full w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-slate-950/55" />
+                    </>
+                )}
+
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <style>{`
                         .maintenance-items ul,
@@ -81,10 +94,10 @@ export default function MaintenanceShow({ type, settings }: Props) {
                         }
                     `}</style>
 
-                    <div className="max-w-3xl mb-8">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{settings.eyebrow}</p>
-                        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mt-2">{type.icon} {settings.title}</h1>
-                        <p className="text-slate-600 mt-3 leading-relaxed">
+                    <div className={`max-w-3xl mb-8 ${hasHeroImage ? 'text-white' : 'text-slate-900'}`}>
+                        <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${hasHeroImage ? 'text-orange-200' : 'text-orange-600'}`}>{settings.eyebrow}</p>
+                        <h1 className="text-3xl sm:text-4xl font-black mt-2">{type.icon} {settings.title}</h1>
+                        <p className={`mt-3 leading-relaxed ${hasHeroImage ? 'text-slate-100' : 'text-slate-600'}`}>
                             {settings.description}
                         </p>
                     </div>

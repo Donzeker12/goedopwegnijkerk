@@ -39,6 +39,15 @@ interface Props {
         country: string;
     };
     reviews: HomeReviewsSettings;
+    maintenanceCategories: {
+        icon: string;
+        title: string;
+        description: string;
+        maintenance_label: string;
+        maintenance_href: string;
+        sales_label: string;
+        sales_href: string;
+    }[];
     siteSettings: {
         'home-hero': HomeHeroSettings;
         'home-quality': HomeQualitySettings;
@@ -49,7 +58,7 @@ interface Props {
     };
 }
 
-export default function Home({ featured, latestBlogs, cityLandingPages, business, reviews, siteSettings }: Props) {
+export default function Home({ featured, latestBlogs, cityLandingPages, business, reviews, maintenanceCategories, siteSettings }: Props) {
     const hero = siteSettings['home-hero'];
     const quality = siteSettings['home-quality'];
     const maintenance = siteSettings['home-maintenance'];
@@ -205,8 +214,8 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {maintenance.service_cards.map((card, index) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                        {maintenanceCategories.map((card, index) => (
                             <article
                                 key={`${card.title}-${index}`}
                                 className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
@@ -214,12 +223,20 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-lg text-white mb-4">{card.icon}</div>
                                 <h3 className="text-2xl font-black text-slate-900">{card.title}</h3>
                                 <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-16">{card.description}</p>
-                                <Link
-                                    href={card.button_href}
-                                    className="mt-6 inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-5 py-2.5 text-sm font-bold text-white transition-colors"
-                                >
-                                    {card.button_label}
-                                </Link>
+                                <div className="mt-6 flex flex-wrap gap-2">
+                                    <Link
+                                        href={card.maintenance_href}
+                                        className="inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2.5 text-sm font-bold text-white transition-colors"
+                                    >
+                                        {card.maintenance_label}
+                                    </Link>
+                                    <Link
+                                        href={card.sales_href}
+                                        className="inline-flex items-center justify-center rounded-xl border border-slate-300 hover:bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors"
+                                    >
+                                        {card.sales_label}
+                                    </Link>
+                                </div>
                             </article>
                         ))}
                     </div>

@@ -10,6 +10,7 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\HomepageReviewsController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\LocationLandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ShopController;
 use App\Models\BlogPost;
 use App\Models\Scooter;
@@ -41,6 +43,7 @@ Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/onderhoud/{type}', [MaintenanceController::class, 'show'])->name('maintenance.show');
+Route::get('/verkoop/{type}', [SalesController::class, 'show'])->name('sales.show');
 Route::get('/favorieten', [FavoritesController::class, 'listPublicPage'])->name('favorites.page');
 Route::post('/api/favorieten/public', [FavoritesController::class, 'listPublic'])->name('favorites.public');
 Route::get('/api/favorieten/lijst', [FavoritesController::class, 'getList'])->name('favorites.get-list');
@@ -68,9 +71,14 @@ Route::get('/sitemap.xml', function () {
         ['loc' => url('/over-ons'), 'lastmod' => $today],
         ['loc' => url('/faq'), 'lastmod' => $today],
         ['loc' => url('/blog'), 'lastmod' => $today],
+        ['loc' => url('/onderhoud/fiets'), 'lastmod' => $today],
         ['loc' => url('/onderhoud/e-bike'), 'lastmod' => $today],
         ['loc' => url('/onderhoud/fatbike'), 'lastmod' => $today],
         ['loc' => url('/onderhoud/scooter'), 'lastmod' => $today],
+        ['loc' => url('/verkoop/fiets'), 'lastmod' => $today],
+        ['loc' => url('/verkoop/e-bike'), 'lastmod' => $today],
+        ['loc' => url('/verkoop/fatbike'), 'lastmod' => $today],
+        ['loc' => url('/verkoop/scooter'), 'lastmod' => $today],
     ]);
 
     $scooterUrls = Scooter::query()
@@ -220,4 +228,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/site-instellingen', [SiteSettingsController::class, 'index'])->name('site-settings.index');
     Route::get('/site-instellingen/{section}', [SiteSettingsController::class, 'edit'])->name('site-settings.edit');
     Route::put('/site-instellingen/{section}', [SiteSettingsController::class, 'update'])->name('site-settings.update');
+    Route::post('/site-instellingen/{section}/afbeelding', [SiteSettingsController::class, 'uploadImage'])->name('site-settings.upload-image');
+
+    // Category pages editor
+    Route::get('/categorieen', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categorieen/{type}', [CategoryController::class, 'edit'])->name('categories.edit');
+    Route::put('/categorieen/{type}/{section}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::post('/categorieen/{type}/{section}/afbeelding', [CategoryController::class, 'uploadImage'])->name('categories.upload-image');
 });
