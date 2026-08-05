@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent, type RefObject } from 'react';
 import TipTapEditor from '../../../components/TipTapEditor';
 import AdminLayout from '../../../layouts/AdminLayout';
 
@@ -49,6 +49,17 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
     const [salesValues, setSalesValues] = useState<Record<string, string>>(salesSection.values);
     const [savingSection, setSavingSection] = useState<'maintenance' | 'sales' | null>(null);
     const [uploadingField, setUploadingField] = useState<string | null>(null);
+    const maintenanceFormRef = useRef<HTMLFormElement | null>(null);
+    const salesFormRef = useRef<HTMLFormElement | null>(null);
+
+    function submitSection(section: 'maintenance' | 'sales') {
+        if (section === 'maintenance') {
+            maintenanceFormRef.current?.requestSubmit();
+            return;
+        }
+
+        salesFormRef.current?.requestSubmit();
+    }
 
     function updateSectionValue(section: 'maintenance' | 'sales', key: string, value: string) {
         if (section === 'maintenance') {
@@ -119,24 +130,38 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
         }
     }
 
-    function renderSection(section: 'maintenance' | 'sales', sectionData: SectionData, values: Record<string, string>) {
+    function renderSection(
+        section: 'maintenance' | 'sales',
+        sectionData: SectionData,
+        values: Record<string, string>,
+        formRef: RefObject<HTMLFormElement | null>,
+    ) {
         return (
-            <form onSubmit={(event) => handleSave(section, event)} className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <form ref={formRef} onSubmit={(event) => handleSave(section, event)} className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">{sectionData.title}</h2>
                         <p className="mt-1.5 text-sm text-gray-600">{sectionData.description}</p>
                     </div>
-                    {sectionData.preview_url && (
-                        <a
-                            href={sectionData.preview_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                    <div className="flex flex-wrap items-center gap-2">
+                        {sectionData.preview_url && (
+                            <a
+                                href={sectionData.preview_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                            >
+                                Bekijk live
+                            </a>
+                        )}
+                        <button
+                            type="submit"
+                            disabled={savingSection === section}
+                            className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
                         >
-                            Bekijk live
-                        </a>
-                    )}
+                            {savingSection === section ? 'Opslaan...' : section === 'maintenance' ? 'Onderhoud opslaan' : 'Verkoop opslaan'}
+                        </button>
+                    </div>
                 </div>
 
                 {sectionData.fields.map((field) => {
@@ -258,8 +283,34 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                     </div>
                 </div>
 
-                {renderSection('maintenance', maintenanceSection, maintenanceValues)}
-                {renderSection('sales', salesSection, salesValues)}
+                <div className="sticky top-4 z-20 rounded-2xl border border-orange-200 bg-orange-50/95 p-3 backdrop-blur">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm font-semibold text-orange-900">
+                            Snel opslaan zonder scrollen
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => submitSection('maintenance')}
+                                disabled={savingSection !== null}
+                                className="rounded-lg bg-orange-500 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                            >
+                                {savingSection === 'maintenance' ? 'Onderhoud opslaan...' : 'Onderhoud opslaan'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => submitSection('sales')}
+                                disabled={savingSection !== null}
+                                className="rounded-lg border border-orange-300 bg-white px-3.5 py-2 text-sm font-semibold text-orange-800 hover:bg-orange-100 disabled:opacity-60"
+                            >
+                                {savingSection === 'sales' ? 'Verkoop opslaan...' : 'Verkoop opslaan'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {renderSection('maintenance', maintenanceSection, maintenanceValues, maintenanceFormRef)}
+                {renderSection('sales', salesSection, salesValues, salesFormRef)}
             </div>
         </AdminLayout>
     );
