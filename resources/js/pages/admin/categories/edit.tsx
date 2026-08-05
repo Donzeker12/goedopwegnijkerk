@@ -375,7 +375,24 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                                         : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
-                                Onderhoud
+                                <span className="inline-flex items-center gap-2">
+                                    <span>Onderhoud</span>
+                                    {savingSection === 'maintenance' ? (
+                                        <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                                            Opslaan...
+                                        </span>
+                                    ) : dirtySections.maintenance ? (
+                                        <span
+                                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
+                                                activeTab === 'maintenance'
+                                                    ? 'bg-amber-300/25 text-amber-100'
+                                                    : 'bg-amber-100 text-amber-800'
+                                            }`}
+                                        >
+                                            Niet opgeslagen
+                                        </span>
+                                    ) : null}
+                                </span>
                             </button>
                             <button
                                 type="button"
@@ -386,7 +403,24 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                                         : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
-                                Verkoop
+                                <span className="inline-flex items-center gap-2">
+                                    <span>Verkoop</span>
+                                    {savingSection === 'sales' ? (
+                                        <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                                            Opslaan...
+                                        </span>
+                                    ) : dirtySections.sales ? (
+                                        <span
+                                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
+                                                activeTab === 'sales'
+                                                    ? 'bg-amber-300/25 text-amber-100'
+                                                    : 'bg-amber-100 text-amber-800'
+                                            }`}
+                                        >
+                                            Niet opgeslagen
+                                        </span>
+                                    ) : null}
+                                </span>
                             </button>
                             <button
                                 type="button"
