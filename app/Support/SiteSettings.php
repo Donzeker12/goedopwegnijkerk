@@ -17,6 +17,7 @@ class SiteSettings
         'location' => 'Locatiepagina’s',
         'chat' => 'Chat',
         'admin' => 'Admin',
+        'maintenance' => 'Onderhoud',
         'default' => 'Overig',
     ];
 
@@ -53,6 +54,10 @@ class SiteSettings
 
         if (str_starts_with($slug, 'chat')) {
             return 'chat';
+        }
+
+        if (str_starts_with($slug, 'maintenance-')) {
+            return 'maintenance';
         }
 
         if (str_starts_with($slug, 'admin-')) {

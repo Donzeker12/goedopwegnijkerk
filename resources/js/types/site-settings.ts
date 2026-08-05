@@ -48,11 +48,37 @@ export interface HomeMaintenanceCard {
     price: string;
 }
 
+export interface HomeMaintenanceServiceCard {
+    icon: string;
+    title: string;
+    description: string;
+    button_label: string;
+    button_href: string;
+}
+
 export interface HomeMaintenanceSettings {
     eyebrow: string;
     title: string;
     description: string;
-    cards: HomeMaintenanceCard[];
+    service_cards: HomeMaintenanceServiceCard[];
+}
+
+export interface MaintenancePageSettings {
+    eyebrow: string;
+    title: string;
+    description: string;
+    small_badge: string;
+    small_title: string;
+    small_description: string;
+    small_items: string;
+    small_price_label: string;
+    small_price: string;
+    large_badge: string;
+    large_title: string;
+    large_description: string;
+    large_items: string;
+    large_price_label: string;
+    large_price: string;
 }
 
 export interface HomeReviewItem {

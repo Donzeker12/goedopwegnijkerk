@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\ScooterPartController;
 use App\Http\Controllers\Admin\ScooterPhotoController;
 use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\LocationLandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
@@ -39,6 +40,7 @@ Route::get('/over-ons', [AboutController::class, 'index'])->name('about');
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::get('/onderhoud/{type}', [MaintenanceController::class, 'show'])->name('maintenance.show');
 Route::get('/favorieten', [FavoritesController::class, 'listPublicPage'])->name('favorites.page');
 Route::post('/api/favorieten/public', [FavoritesController::class, 'listPublic'])->name('favorites.public');
 Route::get('/api/favorieten/lijst', [FavoritesController::class, 'getList'])->name('favorites.get-list');
@@ -66,6 +68,9 @@ Route::get('/sitemap.xml', function () {
         ['loc' => url('/over-ons'), 'lastmod' => $today],
         ['loc' => url('/faq'), 'lastmod' => $today],
         ['loc' => url('/blog'), 'lastmod' => $today],
+        ['loc' => url('/onderhoud/e-bike'), 'lastmod' => $today],
+        ['loc' => url('/onderhoud/fatbike'), 'lastmod' => $today],
+        ['loc' => url('/onderhoud/scooter'), 'lastmod' => $today],
     ]);
 
     $scooterUrls = Scooter::query()

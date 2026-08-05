@@ -114,27 +114,6 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
         },
     };
 
-    const renderMaintenanceItems = (items: string) => {
-        const trimmed = (items ?? '').trim();
-
-        if (trimmed.includes('<')) {
-            return <div className="maintenance-items" dangerouslySetInnerHTML={{ __html: trimmed }} />;
-        }
-
-        const lines = trimmed
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0);
-
-        return (
-            <ul className="maintenance-items-list mt-4 space-y-2.5 text-sm text-slate-700">
-                {lines.map((line) => (
-                    <li key={line}>{line}</li>
-                ))}
-            </ul>
-        );
-    };
-
     return (
         <AppLayout>
             <SeoHead
@@ -218,38 +197,6 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
 
             <section className="py-16 bg-slate-50 border-y border-slate-200/80">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <style>{`
-                        .maintenance-items ul,
-                        .maintenance-items ol,
-                        .maintenance-items-list {
-                            margin-top: 1rem;
-                            color: #334155;
-                            font-size: 0.875rem;
-                            line-height: 1.6;
-                        }
-
-                        .maintenance-items ul,
-                        .maintenance-items-list {
-                            list-style: disc;
-                            padding-left: 1.35rem;
-                        }
-
-                        .maintenance-items ol {
-                            list-style: decimal;
-                            padding-left: 1.35rem;
-                        }
-
-                        .maintenance-items li,
-                        .maintenance-items-list li {
-                            margin-bottom: 0.5rem;
-                        }
-
-                        .maintenance-items p {
-                            margin-bottom: 0.75rem;
-                            color: #475569;
-                        }
-                    `}</style>
-
                     <div className="max-w-3xl mb-8">
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{maintenance.eyebrow}</p>
                         <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mt-2">{maintenance.title}</h2>
@@ -258,33 +205,23 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {maintenance.cards.map((card, index) => {
-                            const featuredCard = index % 2 === 1;
-
-                            return (
-                                <article
-                                    key={`${card.badge}-${card.title}-${index}`}
-                                    className={featuredCard
-                                        ? 'rounded-3xl border border-orange-200 bg-gradient-to-br from-white via-orange-50 to-orange-100/50 p-6 sm:p-7 shadow-sm'
-                                        : 'rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm'}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {maintenance.service_cards.map((card, index) => (
+                            <article
+                                key={`${card.title}-${index}`}
+                                className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
+                            >
+                                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-lg text-white mb-4">{card.icon}</div>
+                                <h3 className="text-2xl font-black text-slate-900">{card.title}</h3>
+                                <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-16">{card.description}</p>
+                                <Link
+                                    href={card.button_href}
+                                    className="mt-6 inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-5 py-2.5 text-sm font-bold text-white transition-colors"
                                 >
-                                    <div className={featuredCard
-                                        ? 'inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-orange-700 border border-orange-200'
-                                        : 'inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-emerald-700 border border-emerald-100'}
-                                    >
-                                        {card.badge}
-                                    </div>
-                                    <h3 className="mt-4 text-2xl font-black text-slate-900">{card.title}</h3>
-                                    <p className="mt-2 text-sm text-slate-600">{card.description}</p>
-                                    {renderMaintenanceItems(card.items)}
-                                    <div className={featuredCard ? 'mt-6 border-t border-orange-200 pt-4' : 'mt-6 border-t border-slate-200 pt-4'}>
-                                        <p className="text-xs uppercase tracking-[0.12em] text-slate-500 font-semibold">{card.price_label}</p>
-                                        <p className={featuredCard ? 'text-3xl font-black text-orange-600 mt-1' : 'text-3xl font-black text-orange-500 mt-1'}>{card.price}</p>
-                                    </div>
-                                </article>
-                            );
-                        })}
+                                    {card.button_label}
+                                </Link>
+                            </article>
+                        ))}
                     </div>
                 </div>
             </section>

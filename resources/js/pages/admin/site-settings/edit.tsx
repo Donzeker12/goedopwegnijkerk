@@ -50,6 +50,10 @@ function shouldUseTipTap(sectionSlug: string, fieldKey: string, subFieldKey: str
     return sectionSlug === 'home-maintenance' && fieldKey === 'cards' && subFieldKey === 'items';
 }
 
+function shouldUseTipTapField(sectionSlug: string, fieldKey: string): boolean {
+    return sectionSlug.startsWith('maintenance-') && (fieldKey === 'small_items' || fieldKey === 'large_items');
+}
+
 export default function SiteSettingsEdit({ sections, section }: Props) {
     const { props } = usePage<{ flash?: { success?: string } }>();
     const flash = props.flash;
@@ -295,7 +299,25 @@ export default function SiteSettingsEdit({ sections, section }: Props) {
                         return (
                             <div key={field.key} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">{field.label}</label>
-                                {field.type === 'textarea' ? (
+                                {field.type === 'textarea' && shouldUseTipTapField(section.slug, field.key) ? (
+                                    <div className="rounded-xl border border-gray-300 bg-white p-3">
+                                        <style>{`
+                                            .site-settings-tiptap .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                                            .site-settings-tiptap .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                                            .site-settings-tiptap .prose li { margin-bottom: 0.25rem; color: #374151; }
+                                            .site-settings-tiptap .prose p { margin-bottom: 0.75rem; color: #374151; }
+                                        `}</style>
+                                        <div className="site-settings-tiptap">
+                                            <TipTapEditor
+                                                value={asString(data.values[field.key])}
+                                                onChange={(html) => updateField(field.key, html)}
+                                                placeholder="Gebruik bullet points om onderdelen toe te voegen..."
+                                                spellCheck
+                                                language="nl"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : field.type === 'textarea' ? (
                                     <textarea
                                         value={asString(data.values[field.key])}
                                         onChange={(event) => updateField(field.key, event.target.value)}
