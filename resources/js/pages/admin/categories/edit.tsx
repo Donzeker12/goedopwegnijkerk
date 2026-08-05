@@ -304,7 +304,7 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                                         <img
                                             src={normalizedImageValue}
                                             alt={field.label}
-                                            className="h-44 w-full rounded-xl border border-gray-200 object-cover"
+                                            className="h-28 w-full rounded-xl border border-gray-200 object-cover sm:h-32"
                                         />
                                     )}
                                     <input
