@@ -59,7 +59,7 @@ export default function SalesShow({ type, settings, scooters }: Props) {
                 ]}
             />
 
-            <section className="relative overflow-hidden border-y border-slate-200/80 bg-slate-50 py-16">
+            <section className={`relative overflow-hidden border-y border-slate-200/80 ${hasHeroImage ? 'bg-slate-900 py-0' : 'bg-slate-50 py-16'}`}>
                 {hasHeroImage && (
                     <>
                         <img
@@ -67,7 +67,8 @@ export default function SalesShow({ type, settings, scooters }: Props) {
                             alt={settings.title}
                             className="absolute inset-0 h-full w-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-slate-950/55" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(249,115,22,0.34),transparent_35%),linear-gradient(125deg,rgba(2,6,23,0.84),rgba(30,41,59,0.55))]" />
+                        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-size-[44px_44px]" />
                     </>
                 )}
 
@@ -96,13 +97,29 @@ export default function SalesShow({ type, settings, scooters }: Props) {
                         }
                     `}</style>
 
-                    <div className={`${hasHeroImage ? 'max-w-3xl text-white' : 'max-w-3xl text-slate-900'} mb-8`}>
-                        <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${hasHeroImage ? 'text-orange-200' : 'text-orange-600'}`}>{settings.eyebrow}</p>
-                        <h1 className="mt-2 text-3xl font-black sm:text-4xl">{type.icon} {settings.title}</h1>
-                        <p className={`mt-3 leading-relaxed ${hasHeroImage ? 'text-slate-100' : 'text-slate-600'}`}>{settings.description}</p>
-                    </div>
+                    {hasHeroImage ? (
+                        <div className="py-14 sm:py-18 lg:py-24">
+                            <div className="max-w-4xl rounded-3xl border border-white/25 bg-white/10 p-6 sm:p-8 backdrop-blur-md">
+                                <p className="inline-flex items-center rounded-full border border-white/35 bg-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-100">
+                                    {settings.eyebrow}
+                                </p>
+                                <h1 className="mt-4 text-3xl sm:text-5xl font-black text-white leading-tight">{type.icon} {settings.title}</h1>
+                                <p className="mt-4 max-w-3xl text-sm sm:text-base leading-relaxed text-slate-100">{settings.description}</p>
+                                <div className="mt-6 flex flex-wrap gap-2.5">
+                                    <span className="rounded-full border border-white/35 bg-white/15 px-3 py-1 text-xs font-semibold text-white">Persoonlijk advies</span>
+                                    <span className="rounded-full border border-white/35 bg-white/15 px-3 py-1 text-xs font-semibold text-white">Rijklaar opleveren</span>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-w-3xl text-slate-900 mb-8">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{settings.eyebrow}</p>
+                            <h1 className="mt-2 text-3xl font-black sm:text-4xl">{type.icon} {settings.title}</h1>
+                            <p className="mt-3 leading-relaxed text-slate-600">{settings.description}</p>
+                        </div>
+                    )}
 
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_0.8fr] ${hasHeroImage ? '-mt-4 pb-12 sm:pb-14' : ''}`}>
                         <article className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm">
                             <h2 className="text-2xl font-black text-slate-900">{settings.intro_title}</h2>
                             <p className="mt-2 text-sm text-slate-600">{settings.intro_text}</p>

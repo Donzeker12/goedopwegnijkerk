@@ -49,7 +49,7 @@ export default function MaintenanceShow({ type, settings }: Props) {
                 ]}
             />
 
-            <section className="relative overflow-hidden py-16 bg-slate-50 border-y border-slate-200/80">
+            <section className={`relative overflow-hidden border-y border-slate-200/80 ${hasHeroImage ? 'bg-slate-900 py-0' : 'bg-slate-50 py-16'}`}>
                 {hasHeroImage && (
                     <>
                         <img
@@ -57,11 +57,12 @@ export default function MaintenanceShow({ type, settings }: Props) {
                             alt={settings.title}
                             className="absolute inset-0 h-full w-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-slate-950/55" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,115,22,0.34),transparent_40%),linear-gradient(135deg,rgba(2,6,23,0.82),rgba(15,23,42,0.58))]" />
+                        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-size-[44px_44px]" />
                     </>
                 )}
 
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <style>{`
                         .maintenance-items ul,
                         .maintenance-items ol,
@@ -94,15 +95,29 @@ export default function MaintenanceShow({ type, settings }: Props) {
                         }
                     `}</style>
 
-                    <div className={`max-w-3xl mb-8 ${hasHeroImage ? 'text-white' : 'text-slate-900'}`}>
-                        <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${hasHeroImage ? 'text-orange-200' : 'text-orange-600'}`}>{settings.eyebrow}</p>
-                        <h1 className="text-3xl sm:text-4xl font-black mt-2">{type.icon} {settings.title}</h1>
-                        <p className={`mt-3 leading-relaxed ${hasHeroImage ? 'text-slate-100' : 'text-slate-600'}`}>
-                            {settings.description}
-                        </p>
-                    </div>
+                    {hasHeroImage ? (
+                        <div className="py-14 sm:py-18 lg:py-24">
+                            <div className="max-w-4xl rounded-3xl border border-white/25 bg-white/10 p-6 sm:p-8 backdrop-blur-md">
+                                <p className="inline-flex items-center rounded-full border border-white/35 bg-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-100">
+                                    {settings.eyebrow}
+                                </p>
+                                <h1 className="mt-4 text-3xl sm:text-5xl font-black text-white leading-tight">{type.icon} {settings.title}</h1>
+                                <p className="mt-4 max-w-3xl text-sm sm:text-base leading-relaxed text-slate-100">{settings.description}</p>
+                                <div className="mt-6 flex flex-wrap gap-2.5">
+                                    <span className="rounded-full border border-white/35 bg-white/15 px-3 py-1 text-xs font-semibold text-white">Kleine beurt: {settings.small_price}</span>
+                                    <span className="rounded-full border border-white/35 bg-white/15 px-3 py-1 text-xs font-semibold text-white">Grote beurt: {settings.large_price}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-w-3xl mb-8 text-slate-900">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{settings.eyebrow}</p>
+                            <h1 className="text-3xl sm:text-4xl font-black mt-2">{type.icon} {settings.title}</h1>
+                            <p className="mt-3 leading-relaxed text-slate-600">{settings.description}</p>
+                        </div>
+                    )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${hasHeroImage ? '-mt-4 pb-12 sm:pb-14' : ''}`}>
                         <article className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm">
                             <div className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-emerald-700 border border-emerald-100">
                                 {settings.small_badge}
