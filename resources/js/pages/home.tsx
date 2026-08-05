@@ -43,6 +43,7 @@ interface Props {
         icon: string;
         title: string;
         description: string;
+        image: string;
         maintenance_label: string;
         maintenance_href: string;
         sales_label: string;
@@ -218,21 +219,37 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         {maintenanceCategories.map((card, index) => (
                             <article
                                 key={`${card.title}-${index}`}
-                                className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
+                                className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
                             >
-                                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-lg text-white mb-4">{card.icon}</div>
-                                <h3 className="text-2xl font-black text-slate-900">{card.title}</h3>
-                                <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-16">{card.description}</p>
+                                {card.image && (
+                                    <>
+                                        <img
+                                            src={card.image}
+                                            alt={card.title}
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.55)_0%,rgba(2,6,23,0.82)_100%)]" />
+                                    </>
+                                )}
+
+                                <div className="relative">
+                                    <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-lg mb-4 ${card.image ? 'bg-white/15 text-white border border-white/30' : 'bg-slate-900 text-white'}`}>
+                                        {card.icon}
+                                    </div>
+                                    <h3 className={`text-2xl font-black ${card.image ? 'text-white' : 'text-slate-900'}`}>{card.title}</h3>
+                                    <p className={`mt-2 text-sm leading-relaxed min-h-16 ${card.image ? 'text-slate-100' : 'text-slate-600'}`}>{card.description}</p>
+                                </div>
+
                                 <div className="mt-6 flex flex-wrap gap-2">
                                     <Link
                                         href={card.maintenance_href}
-                                        className="inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2.5 text-sm font-bold text-white transition-colors"
+                                        className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${card.image ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
                                     >
                                         {card.maintenance_label}
                                     </Link>
                                     <Link
                                         href={card.sales_href}
-                                        className="inline-flex items-center justify-center rounded-xl border border-slate-300 hover:bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors"
+                                        className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${card.image ? 'border border-white/40 bg-white/10 hover:bg-white/20 text-white' : 'border border-slate-300 hover:bg-slate-100 text-slate-700'}`}
                                     >
                                         {card.sales_label}
                                     </Link>

@@ -95,6 +95,7 @@ class HomeController extends Controller
                         'icon' => (string) ($item['card_icon'] ?? ''),
                         'title' => (string) ($item['card_title'] ?? ''),
                         'description' => (string) ($item['card_description'] ?? ''),
+                        'image' => (string) ($item['hero_image'] ?? ''),
                         'maintenance_label' => 'Onderhoud',
                         'maintenance_href' => (string) ($item['card_maintenance_href'] ?? '/onderhoud'),
                         'sales_label' => 'Verkoop',
