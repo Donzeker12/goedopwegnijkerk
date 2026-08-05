@@ -118,27 +118,27 @@ export default function MaintenanceShow({ type, settings }: Props) {
                     )}
 
                     <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${hasHeroImage ? '-mt-4 pb-12 sm:pb-14' : ''}`}>
-                        <article className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm">
+                        <article className="flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm">
                             <div className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-emerald-700 border border-emerald-100">
                                 {settings.small_badge}
                             </div>
                             <h2 className="mt-4 text-2xl font-black text-slate-900">{settings.small_title}</h2>
                             <p className="mt-2 text-sm text-slate-600">{settings.small_description}</p>
                             {renderItems(settings.small_items)}
-                            <div className="mt-6 border-t border-slate-200 pt-4">
+                            <div className="mt-auto border-t border-slate-200 pt-4">
                                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500 font-semibold">{settings.small_price_label}</p>
                                 <p className="text-3xl font-black text-orange-500 mt-1">{settings.small_price}</p>
                             </div>
                         </article>
 
-                        <article className="rounded-3xl border border-orange-200 bg-gradient-to-br from-white via-orange-50 to-orange-100/50 p-6 sm:p-7 shadow-sm">
+                        <article className="flex h-full flex-col rounded-3xl border border-orange-200 bg-gradient-to-br from-white via-orange-50 to-orange-100/50 p-6 sm:p-7 shadow-sm">
                             <div className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-orange-700 border border-orange-200">
                                 {settings.large_badge}
                             </div>
                             <h2 className="mt-4 text-2xl font-black text-slate-900">{settings.large_title}</h2>
                             <p className="mt-2 text-sm text-slate-600">{settings.large_description}</p>
                             {renderItems(settings.large_items)}
-                            <div className="mt-6 border-t border-orange-200 pt-4">
+                            <div className="mt-auto border-t border-orange-200 pt-4">
                                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500 font-semibold">{settings.large_price_label}</p>
                                 <p className="text-3xl font-black text-orange-600 mt-1">{settings.large_price}</p>
                             </div>
