@@ -67,6 +67,8 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
     const quality = siteSettings['home-quality'];
     const maintenance = siteSettings['home-maintenance'];
     const featuredSection = siteSettings['home-featured'];
+    const featuredSectionTitle = 'Ons aanbod';
+    const featuredSectionLinkLabel = 'Bekijk aanbod →';
     const cta = siteSettings['home-cta'];
     const info = siteSettings['home-info'];
 
@@ -307,14 +309,14 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                         <div className="flex items-center justify-between mb-10 gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">{featuredSection.eyebrow}</p>
-                                <h2 className="text-3xl font-black text-slate-900 mt-1">{featuredSection.title}</h2>
+                                <h2 className="text-3xl font-black text-slate-900 mt-1">{featuredSectionTitle}</h2>
                                 <p className="text-slate-600 mt-1">{featuredSection.description}</p>
                             </div>
                             <Link
                                 href={featuredSection.link_href}
                                 className="text-orange-600 hover:text-orange-700 font-semibold text-sm"
                             >
-                                {featuredSection.link_label}
+                                {featuredSectionLinkLabel}
                             </Link>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
