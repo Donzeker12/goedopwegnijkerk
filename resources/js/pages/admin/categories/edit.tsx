@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react';
 import TipTapEditor from '../../../components/TipTapEditor';
 import AdminLayout from '../../../layouts/AdminLayout';
 
@@ -49,8 +49,21 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
     const [salesValues, setSalesValues] = useState<Record<string, string>>(salesSection.values);
     const [savingSection, setSavingSection] = useState<'maintenance' | 'sales' | null>(null);
     const [uploadingField, setUploadingField] = useState<string | null>(null);
+    const [dirtySections, setDirtySections] = useState<{ maintenance: boolean; sales: boolean }>({ maintenance: false, sales: false });
+    const [saveState, setSaveState] = useState<'idle' | 'pending' | 'saving' | 'saved' | 'error'>('idle');
     const maintenanceFormRef = useRef<HTMLFormElement | null>(null);
     const salesFormRef = useRef<HTMLFormElement | null>(null);
+    const saveStateTimeoutRef = useRef<number | null>(null);
+
+    function scheduleSaveStateReset() {
+        if (saveStateTimeoutRef.current !== null) {
+            window.clearTimeout(saveStateTimeoutRef.current);
+        }
+
+        saveStateTimeoutRef.current = window.setTimeout(() => {
+            setSaveState('idle');
+        }, 2200);
+    }
 
     function submitSection(section: 'maintenance' | 'sales') {
         if (section === 'maintenance') {
@@ -62,6 +75,12 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
     }
 
     function updateSectionValue(section: 'maintenance' | 'sales', key: string, value: string) {
+        setSaveState('pending');
+        setDirtySections((current) => ({
+            ...current,
+            [section]: true,
+        }));
+
         if (section === 'maintenance') {
             setMaintenanceValues((current) => ({ ...current, [key]: value }));
             return;
@@ -70,9 +89,13 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
         setSalesValues((current) => ({ ...current, [key]: value }));
     }
 
-    function handleSave(section: 'maintenance' | 'sales', event: FormEvent) {
-        event.preventDefault();
+    function saveSection(section: 'maintenance' | 'sales') {
+        if (savingSection !== null) {
+            return;
+        }
+
         setSavingSection(section);
+        setSaveState('saving');
 
         router.put(
             `/admin/categorieen/${category.slug}/${section}`,
@@ -81,10 +104,59 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
             },
             {
                 preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setDirtySections((current) => ({
+                        ...current,
+                        [section]: false,
+                    }));
+                    setSaveState('saved');
+                    scheduleSaveStateReset();
+                },
+                onError: () => {
+                    setSaveState('error');
+                },
                 onFinish: () => setSavingSection(null),
             },
         );
     }
+
+    function handleSave(section: 'maintenance' | 'sales', event: FormEvent) {
+        event.preventDefault();
+        saveSection(section);
+    }
+
+    useEffect(() => {
+        if (savingSection !== null || uploadingField !== null) {
+            return;
+        }
+
+        const sectionToSave = dirtySections.maintenance
+            ? 'maintenance'
+            : dirtySections.sales
+                ? 'sales'
+                : null;
+
+        if (sectionToSave === null) {
+            return;
+        }
+
+        const timeout = window.setTimeout(() => {
+            saveSection(sectionToSave);
+        }, 1500);
+
+        return () => {
+            window.clearTimeout(timeout);
+        };
+    }, [dirtySections, maintenanceValues, salesValues, savingSection, uploadingField]);
+
+    useEffect(() => {
+        return () => {
+            if (saveStateTimeoutRef.current !== null) {
+                window.clearTimeout(saveStateTimeoutRef.current);
+            }
+        };
+    }, []);
 
     async function handleImageUpload(section: 'maintenance' | 'sales', fieldKey: string, fileList: FileList | null) {
         const file = fileList?.[0];
@@ -286,7 +358,11 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                 <div className="sticky top-4 z-20 rounded-2xl border border-orange-200 bg-orange-50/95 p-3 backdrop-blur">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-sm font-semibold text-orange-900">
-                            Snel opslaan zonder scrollen
+                            {saveState === 'pending' && 'Concept gewijzigd, automatisch opslaan...'}
+                            {saveState === 'saving' && 'Wijzigingen worden opgeslagen...'}
+                            {saveState === 'saved' && 'Alles opgeslagen'}
+                            {saveState === 'error' && 'Opslaan mislukt, probeer opnieuw'}
+                            {(saveState === 'idle') && 'Snel opslaan zonder scrollen'}
                         </p>
                         <div className="flex flex-wrap gap-2">
                             <button
