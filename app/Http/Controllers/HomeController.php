@@ -95,7 +95,7 @@ class HomeController extends Controller
                         'icon' => (string) ($item['card_icon'] ?? ''),
                         'title' => (string) ($item['card_title'] ?? ''),
                         'description' => (string) ($item['card_description'] ?? ''),
-                        'image' => (string) ($item['hero_image'] ?? ''),
+                        'image' => self::resolveImageUrl((string) ($item['hero_image'] ?? '')),
                         'maintenance_label' => 'Onderhoud',
                         'maintenance_href' => (string) ($item['card_maintenance_href'] ?? '/onderhoud'),
                         'sales_label' => 'Verkoop',
@@ -117,5 +117,32 @@ class HomeController extends Controller
                 ->values(),
             'business' => config('seo.business'),
         ]);
+    }
+
+    private static function resolveImageUrl(string $value): string
+    {
+        $image = trim($value);
+
+        if ($image === '') {
+            return '';
+        }
+
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '//')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, '/')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, 'storage/')) {
+            return '/' . $image;
+        }
+
+        if (str_starts_with($image, 'site-settings/') || str_starts_with($image, 'scooters/')) {
+            return '/storage/' . $image;
+        }
+
+        return '/' . ltrim($image, '/');
     }
 }
