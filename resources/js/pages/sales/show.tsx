@@ -59,7 +59,7 @@ export default function SalesShow({ type, settings, scooters }: Props) {
                 ]}
             />
 
-            <section className={`relative overflow-hidden border-y border-slate-200/80 ${hasHeroImage ? 'bg-slate-900 py-0' : 'bg-slate-50 py-16'}`}>
+            <section className={`relative overflow-hidden border-y border-slate-200/80 ${hasHeroImage ? 'bg-slate-900 py-0' : 'bg-slate-50 py-16'} ${hasHeroImage ? 'pb-12 sm:pb-16' : 'pb-12 sm:pb-14'}`}>
                 {hasHeroImage && (
                     <>
                         <img
