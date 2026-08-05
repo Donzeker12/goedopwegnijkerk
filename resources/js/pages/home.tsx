@@ -97,7 +97,7 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
         priceRange: '€€',
         makesOffer: {
             '@type': 'Offer',
-            category: 'Tweedehands scooters',
+            category: 'Tweewielers, reparatie en onderhoud',
         },
         slogan: 'Goed op weg begint met vertrouwen',
     };
