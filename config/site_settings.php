@@ -438,9 +438,9 @@ return [
             ],
             'defaults' => [
                 'eyebrow' => 'Actueel',
-                'title' => 'Nieuwste aanbod scooters',
+                'title' => 'Ons aanbod',
                 'description' => 'Rijklaar geselecteerd en direct beschikbaar',
-                'link_label' => 'Alle scooters →',
+                'link_label' => 'Bekijk aanbod →',
                 'link_href' => '/scooters',
             ],
         ],
