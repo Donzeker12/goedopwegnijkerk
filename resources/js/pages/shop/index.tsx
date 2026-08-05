@@ -69,7 +69,7 @@ export default function ShopIndex({ scooters, siteSettings }: Props) {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {scooters.map((scooter) => (
-                            <Link
+                            <a
                                 key={scooter.id}
                                 href={`/scooters/${scooter.id}`}
                                 className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow overflow-hidden group"
@@ -122,7 +122,7 @@ export default function ShopIndex({ scooters, siteSettings }: Props) {
                                         </span>
                                     </div>
                                 </div>
-                            </Link>
+                            </a>
                         ))}
                     </div>
                 )}

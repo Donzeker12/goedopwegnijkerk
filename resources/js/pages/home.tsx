@@ -241,18 +241,18 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
                                 </div>
 
                                 <div className="relative z-10 mt-6 flex flex-wrap gap-2">
-                                    <Link
+                                    <a
                                         href={card.maintenance_href}
                                         className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${card.image ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
                                     >
                                         {card.maintenance_label}
-                                    </Link>
-                                    <Link
+                                    </a>
+                                    <a
                                         href={card.sales_href}
                                         className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${card.image ? 'border border-white/40 bg-white/10 hover:bg-white/20 text-white' : 'border border-slate-300 hover:bg-slate-100 text-slate-700'}`}
                                     >
                                         {card.sales_label}
-                                    </Link>
+                                    </a>
                                 </div>
                             </article>
                         ))}
