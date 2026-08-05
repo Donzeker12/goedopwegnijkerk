@@ -41,6 +41,42 @@ function shouldUseTipTapField(fieldKey: string): boolean {
     return fieldKey === 'small_items' || fieldKey === 'large_items' || fieldKey === 'usp_items';
 }
 
+function normalizeImageUrl(value: string): string {
+    const image = value.trim();
+
+    if (image === '') {
+        return '';
+    }
+
+    if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('//')) {
+        try {
+            const parsed = new URL(image, window.location.origin);
+
+            if (parsed.pathname.startsWith('/storage/')) {
+                return parsed.pathname;
+            }
+        } catch {
+            return image;
+        }
+
+        return image;
+    }
+
+    if (image.startsWith('/')) {
+        return image;
+    }
+
+    if (image.startsWith('storage/')) {
+        return `/${image}`;
+    }
+
+    if (image.startsWith('site-settings/') || image.startsWith('scooters/')) {
+        return `/storage/${image}`;
+    }
+
+    return `/${image.replace(/^\/+/, '')}`;
+}
+
 export default function CategoryEdit({ categories, category, maintenanceSection, salesSection }: Props) {
     const { props } = usePage<{ flash?: { success?: string } }>();
     const flash = props.flash;
@@ -55,6 +91,21 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
     const maintenanceFormRef = useRef<HTMLFormElement | null>(null);
     const salesFormRef = useRef<HTMLFormElement | null>(null);
     const saveStateTimeoutRef = useRef<number | null>(null);
+
+    function prepareValuesForSave(section: 'maintenance' | 'sales', values: Record<string, string>) {
+        const sectionFields = section === 'maintenance' ? maintenanceSection.fields : salesSection.fields;
+        const normalizedValues: Record<string, string> = { ...values };
+
+        for (const field of sectionFields) {
+            if (field.type !== 'image') {
+                continue;
+            }
+
+            normalizedValues[field.key] = normalizeImageUrl(asString(values[field.key]));
+        }
+
+        return normalizedValues;
+    }
 
     function scheduleSaveStateReset() {
         if (saveStateTimeoutRef.current !== null) {
@@ -101,7 +152,7 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
         router.put(
             `/admin/categorieen/${category.slug}/${section}`,
             {
-                values: section === 'maintenance' ? maintenanceValues : salesValues,
+                values: prepareValuesForSave(section, section === 'maintenance' ? maintenanceValues : salesValues),
             },
             {
                 preserveScroll: true,
@@ -194,7 +245,7 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
             }
 
             const payload = (await response.json()) as { url?: string };
-            updateSectionValue(section, fieldKey, payload.url ?? '');
+            updateSectionValue(section, fieldKey, normalizeImageUrl(payload.url ?? ''));
         } catch (error) {
             console.error(error);
             alert('Uploaden is niet gelukt. Probeer het opnieuw.');
@@ -239,6 +290,7 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
 
                 {sectionData.fields.map((field) => {
                     const value = asString(values[field.key]);
+                    const normalizedImageValue = field.type === 'image' ? normalizeImageUrl(value) : value;
                     const isTipTap = field.type === 'textarea' && shouldUseTipTapField(field.key);
                     const fieldUploading = uploadingField === `${section}:${field.key}`;
 
@@ -250,7 +302,7 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                                 <div className="space-y-3">
                                     {value && (
                                         <img
-                                            src={value}
+                                            src={normalizedImageValue}
                                             alt={field.label}
                                             className="h-44 w-full rounded-xl border border-gray-200 object-cover"
                                         />
