@@ -6,6 +6,7 @@ use App\Models\BlogPost;
 use App\Models\CustomerReview;
 use App\Models\Scooter;
 use App\Support\HomepageReviews;
+use App\Support\MediaUrl;
 use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -95,7 +96,7 @@ class HomeController extends Controller
                         'icon' => (string) ($item['card_icon'] ?? ''),
                         'title' => (string) ($item['card_title'] ?? ''),
                         'description' => (string) ($item['card_description'] ?? ''),
-                        'image' => self::resolveImageUrl((string) ($item['hero_image'] ?? '')),
+                        'image' => MediaUrl::normalize((string) ($item['hero_image'] ?? '')),
                         'maintenance_label' => 'Onderhoud',
                         'maintenance_href' => (string) ($item['card_maintenance_href'] ?? '/onderhoud'),
                         'sales_label' => 'Verkoop',
@@ -119,37 +120,4 @@ class HomeController extends Controller
         ]);
     }
 
-    private static function resolveImageUrl(string $value): string
-    {
-        $image = trim($value);
-
-        if ($image === '') {
-            return '';
-        }
-
-        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '//')) {
-            $path = parse_url($image, PHP_URL_PATH);
-
-            // Uploaded media should stay on the current domain/protocol.
-            if (is_string($path) && str_starts_with($path, '/storage/')) {
-                return $path;
-            }
-
-            return $image;
-        }
-
-        if (str_starts_with($image, '/')) {
-            return $image;
-        }
-
-        if (str_starts_with($image, 'storage/')) {
-            return '/' . $image;
-        }
-
-        if (str_starts_with($image, 'site-settings/') || str_starts_with($image, 'scooters/')) {
-            return '/storage/' . $image;
-        }
-
-        return '/' . ltrim($image, '/');
-    }
 }

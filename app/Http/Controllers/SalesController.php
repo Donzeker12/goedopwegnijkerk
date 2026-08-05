@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Scooter;
+use App\Support\MediaUrl;
 use App\Support\SiteSettings;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,7 +40,7 @@ class SalesController extends Controller
         abort_unless($definition !== null, 404);
 
         $settings = SiteSettings::values($definition['section']);
-        $settings['hero_image'] = self::resolveImageUrl((string) ($settings['hero_image'] ?? ''));
+        $settings['hero_image'] = MediaUrl::normalize((string) ($settings['hero_image'] ?? ''));
 
         $scooters = collect();
 
@@ -72,36 +73,4 @@ class SalesController extends Controller
         ]);
     }
 
-    private static function resolveImageUrl(string $value): string
-    {
-        $image = trim($value);
-
-        if ($image === '') {
-            return '';
-        }
-
-        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '//')) {
-            $path = parse_url($image, PHP_URL_PATH);
-
-            if (is_string($path) && str_starts_with($path, '/storage/')) {
-                return $path;
-            }
-
-            return $image;
-        }
-
-        if (str_starts_with($image, '/')) {
-            return $image;
-        }
-
-        if (str_starts_with($image, 'storage/')) {
-            return '/' . $image;
-        }
-
-        if (str_starts_with($image, 'site-settings/') || str_starts_with($image, 'scooters/')) {
-            return '/storage/' . $image;
-        }
-
-        return '/' . ltrim($image, '/');
-    }
 }
