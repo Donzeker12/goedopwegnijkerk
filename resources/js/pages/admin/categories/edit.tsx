@@ -48,6 +48,7 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
     const [maintenanceValues, setMaintenanceValues] = useState<Record<string, string>>(maintenanceSection.values);
     const [salesValues, setSalesValues] = useState<Record<string, string>>(salesSection.values);
     const [savingSection, setSavingSection] = useState<'maintenance' | 'sales' | null>(null);
+    const [activeTab, setActiveTab] = useState<'maintenance' | 'sales'>('maintenance');
     const [uploadingField, setUploadingField] = useState<string | null>(null);
     const [dirtySections, setDirtySections] = useState<{ maintenance: boolean; sales: boolean }>({ maintenance: false, sales: false });
     const [saveState, setSaveState] = useState<'idle' | 'pending' | 'saving' | 'saved' | 'error'>('idle');
@@ -367,26 +368,43 @@ export default function CategoryEdit({ categories, category, maintenanceSection,
                         <div className="flex flex-wrap gap-2">
                             <button
                                 type="button"
-                                onClick={() => submitSection('maintenance')}
-                                disabled={savingSection !== null}
-                                className="rounded-lg bg-orange-500 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                                onClick={() => setActiveTab('maintenance')}
+                                className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors ${
+                                    activeTab === 'maintenance'
+                                        ? 'bg-slate-900 text-white'
+                                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                                }`}
                             >
-                                {savingSection === 'maintenance' ? 'Onderhoud opslaan...' : 'Onderhoud opslaan'}
+                                Onderhoud
                             </button>
                             <button
                                 type="button"
-                                onClick={() => submitSection('sales')}
-                                disabled={savingSection !== null}
-                                className="rounded-lg border border-orange-300 bg-white px-3.5 py-2 text-sm font-semibold text-orange-800 hover:bg-orange-100 disabled:opacity-60"
+                                onClick={() => setActiveTab('sales')}
+                                className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors ${
+                                    activeTab === 'sales'
+                                        ? 'bg-slate-900 text-white'
+                                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                                }`}
                             >
-                                {savingSection === 'sales' ? 'Verkoop opslaan...' : 'Verkoop opslaan'}
+                                Verkoop
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => submitSection(activeTab)}
+                                disabled={savingSection !== null}
+                                className="rounded-lg bg-orange-500 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                            >
+                                {savingSection === activeTab
+                                    ? activeTab === 'maintenance' ? 'Onderhoud opslaan...' : 'Verkoop opslaan...'
+                                    : activeTab === 'maintenance' ? 'Onderhoud opslaan' : 'Verkoop opslaan'}
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {renderSection('maintenance', maintenanceSection, maintenanceValues, maintenanceFormRef)}
-                {renderSection('sales', salesSection, salesValues, salesFormRef)}
+                {activeTab === 'maintenance'
+                    ? renderSection('maintenance', maintenanceSection, maintenanceValues, maintenanceFormRef)
+                    : renderSection('sales', salesSection, salesValues, salesFormRef)}
             </div>
         </AdminLayout>
     );
