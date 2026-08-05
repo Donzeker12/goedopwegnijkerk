@@ -40,8 +40,8 @@ export default function ShopIndex({ scooters, siteSettings }: Props) {
     return (
         <AppLayout>
             <SeoHead
-                title="Scooters te koop in Nijkerk"
-                description="Bekijk scooters te koop in Nijkerk. Tweedehands, rijklaar en eerlijk geprijsd met duidelijke informatie en persoonlijke service."
+                title="Tweewielers en scooters in Nijkerk"
+                description="Bekijk ons aanbod en onze service voor tweewielers in Nijkerk, inclusief scooterverkoop, onderhoud en reparatie."
                 path="/scooters"
                 breadcrumbs={[
                     { name: 'Home', url: '/' },

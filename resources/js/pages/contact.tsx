@@ -23,7 +23,7 @@ export default function ContactPage() {
         <AppLayout>
             <SeoHead
                 title="Contact"
-                description="Neem contact op met Goed Op Weg Nijkerk voor vragen, offertes of een afspraak."
+                description="Neem contact op met Goed Op Weg Nijkerk voor verkoop, reparatie en onderhoud van tweewielers in Nijkerk."
                 path="/contact"
             />
             <Head title="Contact" />

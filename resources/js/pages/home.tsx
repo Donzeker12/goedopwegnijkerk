@@ -138,8 +138,8 @@ export default function Home({ featured, latestBlogs, cityLandingPages, business
     return (
         <AppLayout>
             <SeoHead
-                title="Tweedehands scooter kopen in Nijkerk"
-                description="Tweedehands scooter kopen in Nijkerk? Goed Op Weg Nijkerk levert rijklare scooters met heldere historie, eerlijke prijs en persoonlijke service."
+                title="Alles voor tweewielers in Nijkerk"
+                description="Alles voor tweewielers in Nijkerk: verkoop, reparatie, onderhoud en service voor fietsen, e-bikes en scooters."
                 path="/"
                 breadcrumbs={[{ name: 'Home' }]}
                 jsonLd={[localBusinessSchema, webSiteSchema]}

@@ -4,10 +4,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="description" content="Goed op weg begint met vertrouwen. Eerlijke tweedehands scooters, rijklaar gemaakt en helder geprijsd in Nijkerk.">
-        <meta property="og:title" content="Goed Op Weg Nijkerk">
+        <meta name="description" content="Alles voor tweewielers in Nijkerk: verkoop, reparatie, onderhoud en service voor fietsen, e-bikes en scooters.">
+        <meta property="og:title" content="Alles voor tweewielers | Goed Op Weg Nijkerk">
         <meta property="og:site_name" content="Goed Op Weg Nijkerk">
-        <meta property="og:description" content="Goed op weg begint met vertrouwen. Eerlijke tweedehands scooters, rijklaar gemaakt en helder geprijsd in Nijkerk.">
+        <meta property="og:description" content="Alles voor tweewielers in Nijkerk: verkoop, reparatie, onderhoud en service voor fietsen, e-bikes en scooters.">
         <meta name="theme-color" content="#111827">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,7 +24,7 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>Goed Op Weg Nijkerk</title>
+            <title>Alles voor tweewielers | Goed Op Weg Nijkerk</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

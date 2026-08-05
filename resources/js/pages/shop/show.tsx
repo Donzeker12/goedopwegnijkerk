@@ -362,7 +362,7 @@ export default function ShopShow({ scooter, features, related_scooters }: Props)
         <AppLayout>
             <SeoHead
                 title={scooter.naam}
-                description={`${scooter.naam} kopen in Nijkerk? Tweedehands, rijklaar en transparant geprijsd. Plan direct een proefrit bij Goed Op Weg Nijkerk.`}
+                description={`${scooter.naam} in Nijkerk bekijken? Goed Op Weg Nijkerk helpt met verkoop, onderhoud, reparatie en persoonlijk advies voor tweewielers.`}
                 path={`/scooters/${scooter.id}`}
                 type="product"
                 image={scooter.photos[0]?.url}
