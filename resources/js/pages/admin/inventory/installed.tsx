@@ -54,43 +54,87 @@ export default function InstalledInventoryIndex({ parts }: Props) {
                 {parts.length === 0 ? (
                     <p className="p-4 text-sm text-gray-400">Nog geen geplaatste onderdelen gevonden.</p>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="bg-gray-50 text-xs text-gray-500">
-                                    <th className="px-4 py-3 text-left">Onderdeel</th>
-                                    <th className="px-4 py-3 text-left">Categorie</th>
-                                    <th className="px-4 py-3 text-left">Scooter</th>
-                                    <th className="px-4 py-3 text-left">Datum geplaatst</th>
-                                    <th className="px-4 py-3 text-right">Aantal</th>
-                                    <th className="px-4 py-3 text-right">Kosten</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {parts.map((part) => (
-                                    <tr key={part.id}>
-                                        <td className="px-4 py-3">
-                                            <div className="font-semibold text-gray-900">{part.name}</div>
-                                            {part.part_brand && <div className="text-xs text-gray-500 mt-0.5">Winkel: {part.part_brand}</div>}
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-600">{part.category}</td>
-                                        <td className="px-4 py-3">
-                                            {part.scooter_id ? (
-                                                <Link href={`/admin/scooters/${part.scooter_id}/bewerken`} className="text-orange-600 hover:underline">
-                                                    {part.scooter_name}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-gray-400">Geen koppeling</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-700">{part.placed_at ?? '-'}</td>
-                                        <td className="px-4 py-3 text-right text-gray-700">{part.quantity}</td>
-                                        <td className="px-4 py-3 text-right font-semibold text-gray-900">{euro(part.total_cost)}</td>
+                    <>
+                        <div className="divide-y divide-gray-100 md:hidden">
+                            {parts.map((part) => (
+                                <article key={part.id} className="p-4 space-y-3">
+                                    <div>
+                                        <div className="font-semibold text-gray-900">{part.name}</div>
+                                        {part.part_brand && <div className="text-xs text-gray-500 mt-0.5">Winkel: {part.part_brand}</div>}
+                                    </div>
+
+                                    <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                                        <div>
+                                            <dt className="text-gray-500">Categorie</dt>
+                                            <dd className="text-gray-700">{part.category}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Datum geplaatst</dt>
+                                            <dd className="text-gray-700">{part.placed_at ?? '-'}</dd>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <dt className="text-gray-500">Scooter</dt>
+                                            <dd>
+                                                {part.scooter_id ? (
+                                                    <Link href={`/admin/scooters/${part.scooter_id}/bewerken`} className="text-orange-600 hover:underline">
+                                                        {part.scooter_name}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-gray-400">Geen koppeling</span>
+                                                )}
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Aantal</dt>
+                                            <dd className="font-semibold text-gray-800">{part.quantity}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Kosten</dt>
+                                            <dd className="font-semibold text-gray-900">{euro(part.total_cost)}</dd>
+                                        </div>
+                                    </dl>
+                                </article>
+                            ))}
+                        </div>
+
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="bg-gray-50 text-xs text-gray-500">
+                                        <th className="px-4 py-3 text-left">Onderdeel</th>
+                                        <th className="px-4 py-3 text-left">Categorie</th>
+                                        <th className="px-4 py-3 text-left">Scooter</th>
+                                        <th className="px-4 py-3 text-left">Datum geplaatst</th>
+                                        <th className="px-4 py-3 text-right">Aantal</th>
+                                        <th className="px-4 py-3 text-right">Kosten</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {parts.map((part) => (
+                                        <tr key={part.id}>
+                                            <td className="px-4 py-3">
+                                                <div className="font-semibold text-gray-900">{part.name}</div>
+                                                {part.part_brand && <div className="text-xs text-gray-500 mt-0.5">Winkel: {part.part_brand}</div>}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-600">{part.category}</td>
+                                            <td className="px-4 py-3">
+                                                {part.scooter_id ? (
+                                                    <Link href={`/admin/scooters/${part.scooter_id}/bewerken`} className="text-orange-600 hover:underline">
+                                                        {part.scooter_name}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-gray-400">Geen koppeling</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-700">{part.placed_at ?? '-'}</td>
+                                            <td className="px-4 py-3 text-right text-gray-700">{part.quantity}</td>
+                                            <td className="px-4 py-3 text-right font-semibold text-gray-900">{euro(part.total_cost)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
                 )}
             </div>
         </AdminLayout>

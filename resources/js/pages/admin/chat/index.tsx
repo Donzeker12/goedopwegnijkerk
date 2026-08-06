@@ -82,59 +82,118 @@ export default function AdminChatIndex({ sessions, filters, auto_closed_count }:
                 {sessions.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-sm">Nog geen chatgesprekken ontvangen.</div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-50 text-gray-600">
-                                <tr>
-                                    <th className="text-left px-4 py-3 font-semibold">Bezoeker</th>
-                                    <th className="text-left px-4 py-3 font-semibold">Scooter</th>
-                                    <th className="text-left px-4 py-3 font-semibold">Status</th>
-                                    <th className="text-left px-4 py-3 font-semibold">Berichten</th>
-                                    <th className="text-left px-4 py-3 font-semibold">Laatste activiteit</th>
-                                    <th className="text-left px-4 py-3 font-semibold">Actie</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sessions.map((session) => (
-                                    <tr key={session.id} className="border-t border-gray-100">
-                                        <td className="px-4 py-3">
-                                            <div className="font-semibold text-gray-900">{session.name}</div>
-                                            <div className="text-xs text-gray-500">{session.email}</div>
-                                            <div className="text-xs text-gray-400">Bron: {session.source ?? '-'}</div>
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-700">{session.scooter ?? 'Algemene vraag'}</td>
-                                        <td className="px-4 py-3">
-                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                                                session.status === 'nieuw'
-                                                    ? 'bg-orange-100 text-orange-700'
-                                                    : session.status === 'open'
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-gray-200 text-gray-700'
-                                            }`}>
-                                                {session.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-700">{session.messages_count}</td>
-                                        <td className="px-4 py-3 text-gray-600">{formatDateTime(session.last_message_at ?? session.created_at)}</td>
-                                        <td className="px-4 py-3">
-                                            <Link
-                                                href={`/admin/chat/${session.id}`}
-                                                className="inline-flex items-center rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black"
-                                            >
-                                                Open chat
-                                            </Link>
-                                            <button
-                                                type="button"
-                                                onClick={() => deleteSession(session.id, session.name)}
-                                                className="ml-2 inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
-                                            >
-                                                Verwijder
-                                            </button>
-                                        </td>
+                    <>
+                        <div className="md:hidden divide-y divide-gray-100">
+                            {sessions.map((session) => (
+                                <article key={session.id} className="p-4 space-y-3.5">
+                                    <div>
+                                        <div className="font-semibold text-gray-900">{session.name}</div>
+                                        <div className="text-xs text-gray-500">{session.email}</div>
+                                        <div className="text-xs text-gray-400">Bron: {session.source ?? '-'}</div>
+                                    </div>
+
+                                    <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                                        <div className="col-span-2">
+                                            <dt className="text-gray-500">Scooter</dt>
+                                            <dd className="text-sm text-gray-800">{session.scooter ?? 'Algemene vraag'}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Status</dt>
+                                            <dd className="mt-1">
+                                                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                                    session.status === 'nieuw'
+                                                        ? 'bg-orange-100 text-orange-700'
+                                                        : session.status === 'open'
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-gray-200 text-gray-700'
+                                                }`}>
+                                                    {session.status}
+                                                </span>
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Berichten</dt>
+                                            <dd className="text-sm text-gray-800">{session.messages_count}</dd>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <dt className="text-gray-500">Laatste activiteit</dt>
+                                            <dd className="text-sm text-gray-700">{formatDateTime(session.last_message_at ?? session.created_at)}</dd>
+                                        </div>
+                                    </dl>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Link
+                                            href={`/admin/chat/${session.id}`}
+                                            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-black"
+                                        >
+                                            Open chat
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => deleteSession(session.id, session.name)}
+                                            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                        >
+                                            Verwijder
+                                        </button>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 text-gray-600">
+                                    <tr>
+                                        <th className="text-left px-4 py-3 font-semibold">Bezoeker</th>
+                                        <th className="text-left px-4 py-3 font-semibold">Scooter</th>
+                                        <th className="text-left px-4 py-3 font-semibold">Status</th>
+                                        <th className="text-left px-4 py-3 font-semibold">Berichten</th>
+                                        <th className="text-left px-4 py-3 font-semibold">Laatste activiteit</th>
+                                        <th className="text-left px-4 py-3 font-semibold">Actie</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {sessions.map((session) => (
+                                        <tr key={session.id} className="border-t border-gray-100">
+                                            <td className="px-4 py-3">
+                                                <div className="font-semibold text-gray-900">{session.name}</div>
+                                                <div className="text-xs text-gray-500">{session.email}</div>
+                                                <div className="text-xs text-gray-400">Bron: {session.source ?? '-'}</div>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-700">{session.scooter ?? 'Algemene vraag'}</td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                                    session.status === 'nieuw'
+                                                        ? 'bg-orange-100 text-orange-700'
+                                                        : session.status === 'open'
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-gray-200 text-gray-700'
+                                                }`}>
+                                                    {session.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-700">{session.messages_count}</td>
+                                            <td className="px-4 py-3 text-gray-600">{formatDateTime(session.last_message_at ?? session.created_at)}</td>
+                                            <td className="px-4 py-3">
+                                                <Link
+                                                    href={`/admin/chat/${session.id}`}
+                                                    className="inline-flex items-center rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black"
+                                                >
+                                                    Open chat
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => deleteSession(session.id, session.name)}
+                                                    className="ml-2 inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                                >
+                                                    Verwijder
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>

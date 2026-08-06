@@ -260,47 +260,93 @@ export default function FinanceIndex({ entries, open_payments, category_totals, 
                         <div className="px-4 py-3 border-b border-gray-100">
                             <h2 className="font-bold text-gray-900">Recente inkopen & bonnetjes</h2>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="text-xs text-gray-500 bg-gray-50">
-                                        <th className="text-left px-4 py-2">Omschrijving</th>
-                                        <th className="text-left px-4 py-2">Categorie</th>
-                                        <th className="text-left px-4 py-2">Status</th>
-                                        <th className="text-right px-4 py-2">Bedrag</th>
-                                        <th className="text-left px-4 py-2">Bon</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {entries.map((entry) => (
-                                        <tr key={entry.id}>
-                                            <td className="px-4 py-2">
-                                                <div className="font-medium text-gray-900">{entry.description}</div>
-                                                {entry.scooter && (
-                                                    <Link href={`/admin/scooters/${entry.scooter.id}/bewerken`} className="text-xs text-orange-600 hover:underline">
-                                                        {entry.scooter.naam}
-                                                    </Link>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-2 text-gray-600">{categoryLabel[entry.category]}</td>
-                                            <td className="px-4 py-2">
-                                                <span className={`text-xs px-2 py-1 rounded-full ${entry.payment_status === 'open' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                                    {entry.payment_status === 'open' ? 'Open' : 'Betaald'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-2 text-right font-semibold">{euro(entry.amount)}</td>
-                                            <td className="px-4 py-2">
-                                                {entry.receipt_url ? (
-                                                    <a href={entry.receipt_url} target="_blank" rel="noreferrer" className="text-orange-600 hover:underline text-xs">Bekijk bon</a>
-                                                ) : (
-                                                    <span className="text-gray-300 text-xs">—</span>
-                                                )}
-                                            </td>
+                        <>
+                            <div className="divide-y divide-gray-100 md:hidden">
+                                {entries.map((entry) => (
+                                    <article key={entry.id} className="p-4 space-y-3">
+                                        <div>
+                                            <div className="font-medium text-gray-900">{entry.description}</div>
+                                            {entry.scooter && (
+                                                <Link href={`/admin/scooters/${entry.scooter.id}/bewerken`} className="text-xs text-orange-600 hover:underline">
+                                                    {entry.scooter.naam}
+                                                </Link>
+                                            )}
+                                        </div>
+
+                                        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                                            <div>
+                                                <dt className="text-gray-500">Categorie</dt>
+                                                <dd className="text-gray-700">{categoryLabel[entry.category]}</dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-gray-500">Status</dt>
+                                                <dd>
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${entry.payment_status === 'open' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                        {entry.payment_status === 'open' ? 'Open' : 'Betaald'}
+                                                    </span>
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-gray-500">Bedrag</dt>
+                                                <dd className="font-semibold text-gray-900">{euro(entry.amount)}</dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-gray-500">Bon</dt>
+                                                <dd>
+                                                    {entry.receipt_url ? (
+                                                        <a href={entry.receipt_url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">Bekijk bon</a>
+                                                    ) : (
+                                                        <span className="text-gray-300 text-xs">—</span>
+                                                    )}
+                                                </dd>
+                                            </div>
+                                        </dl>
+                                    </article>
+                                ))}
+                            </div>
+
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="text-xs text-gray-500 bg-gray-50">
+                                            <th className="text-left px-4 py-2">Omschrijving</th>
+                                            <th className="text-left px-4 py-2">Categorie</th>
+                                            <th className="text-left px-4 py-2">Status</th>
+                                            <th className="text-right px-4 py-2">Bedrag</th>
+                                            <th className="text-left px-4 py-2">Bon</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {entries.map((entry) => (
+                                            <tr key={entry.id}>
+                                                <td className="px-4 py-2">
+                                                    <div className="font-medium text-gray-900">{entry.description}</div>
+                                                    {entry.scooter && (
+                                                        <Link href={`/admin/scooters/${entry.scooter.id}/bewerken`} className="text-xs text-orange-600 hover:underline">
+                                                            {entry.scooter.naam}
+                                                        </Link>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-2 text-gray-600">{categoryLabel[entry.category]}</td>
+                                                <td className="px-4 py-2">
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${entry.payment_status === 'open' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                        {entry.payment_status === 'open' ? 'Open' : 'Betaald'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-2 text-right font-semibold">{euro(entry.amount)}</td>
+                                                <td className="px-4 py-2">
+                                                    {entry.receipt_url ? (
+                                                        <a href={entry.receipt_url} target="_blank" rel="noreferrer" className="text-orange-600 hover:underline text-xs">Bekijk bon</a>
+                                                    ) : (
+                                                        <span className="text-gray-300 text-xs">—</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     </div>
                 </div>
 

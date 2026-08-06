@@ -59,45 +59,85 @@ export default function PushSubscriptionsIndex({ subscriptions, stats }: Props) 
                 {subscriptions.length === 0 ? (
                     <p className="p-4 text-sm text-gray-500">Er zijn nog geen push subscriptions opgeslagen.</p>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-50 text-gray-600 text-xs">
-                                <tr>
-                                    <th className="text-left px-4 py-2 font-semibold">Gebruiker</th>
-                                    <th className="text-left px-4 py-2 font-semibold">Endpoint</th>
-                                    <th className="text-left px-4 py-2 font-semibold">Encoding</th>
-                                    <th className="text-left px-4 py-2 font-semibold">Aangemaakt</th>
-                                    <th className="text-left px-4 py-2 font-semibold">Laatst gebruikt</th>
-                                    <th className="text-left px-4 py-2 font-semibold">Actie</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {subscriptions.map((subscription) => (
-                                    <tr key={subscription.id}>
-                                        <td className="px-4 py-2">
-                                            <div className="font-semibold text-gray-900">{subscription.user.name ?? 'Onbekend'}</div>
-                                            <div className="text-xs text-gray-500">{subscription.user.email ?? '-'}</div>
-                                        </td>
-                                        <td className="px-4 py-2 text-xs text-gray-700 max-w-105">
-                                            <span title={subscription.endpoint}>{shortEndpoint(subscription.endpoint)}</span>
-                                        </td>
-                                        <td className="px-4 py-2 text-gray-700">{subscription.content_encoding}</td>
-                                        <td className="px-4 py-2 text-gray-600">{subscription.created_at ?? '-'}</td>
-                                        <td className="px-4 py-2 text-gray-600">{subscription.last_used_at ?? '-'}</td>
-                                        <td className="px-4 py-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSubscription(subscription.id)}
-                                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
-                                            >
-                                                Verwijder
-                                            </button>
-                                        </td>
+                    <>
+                        <div className="divide-y divide-gray-100 md:hidden">
+                            {subscriptions.map((subscription) => (
+                                <article key={subscription.id} className="p-4 space-y-3">
+                                    <div>
+                                        <div className="font-semibold text-gray-900">{subscription.user.name ?? 'Onbekend'}</div>
+                                        <div className="text-xs text-gray-500">{subscription.user.email ?? '-'}</div>
+                                    </div>
+
+                                    <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                                        <div className="col-span-2">
+                                            <dt className="text-gray-500">Endpoint</dt>
+                                            <dd className="text-gray-700 break-all">{shortEndpoint(subscription.endpoint)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Encoding</dt>
+                                            <dd className="text-gray-700">{subscription.content_encoding}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-gray-500">Aangemaakt</dt>
+                                            <dd className="text-gray-700">{subscription.created_at ?? '-'}</dd>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <dt className="text-gray-500">Laatst gebruikt</dt>
+                                            <dd className="text-gray-700">{subscription.last_used_at ?? '-'}</dd>
+                                        </div>
+                                    </dl>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSubscription(subscription.id)}
+                                        className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                    >
+                                        Verwijder
+                                    </button>
+                                </article>
+                            ))}
+                        </div>
+
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 text-gray-600 text-xs">
+                                    <tr>
+                                        <th className="text-left px-4 py-2 font-semibold">Gebruiker</th>
+                                        <th className="text-left px-4 py-2 font-semibold">Endpoint</th>
+                                        <th className="text-left px-4 py-2 font-semibold">Encoding</th>
+                                        <th className="text-left px-4 py-2 font-semibold">Aangemaakt</th>
+                                        <th className="text-left px-4 py-2 font-semibold">Laatst gebruikt</th>
+                                        <th className="text-left px-4 py-2 font-semibold">Actie</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {subscriptions.map((subscription) => (
+                                        <tr key={subscription.id}>
+                                            <td className="px-4 py-2">
+                                                <div className="font-semibold text-gray-900">{subscription.user.name ?? 'Onbekend'}</div>
+                                                <div className="text-xs text-gray-500">{subscription.user.email ?? '-'}</div>
+                                            </td>
+                                            <td className="px-4 py-2 text-xs text-gray-700 max-w-105">
+                                                <span title={subscription.endpoint}>{shortEndpoint(subscription.endpoint)}</span>
+                                            </td>
+                                            <td className="px-4 py-2 text-gray-700">{subscription.content_encoding}</td>
+                                            <td className="px-4 py-2 text-gray-600">{subscription.created_at ?? '-'}</td>
+                                            <td className="px-4 py-2 text-gray-600">{subscription.last_used_at ?? '-'}</td>
+                                            <td className="px-4 py-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSubscription(subscription.id)}
+                                                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                                >
+                                                    Verwijder
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
                 )}
             </div>
         </AdminLayout>
