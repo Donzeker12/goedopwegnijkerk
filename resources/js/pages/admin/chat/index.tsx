@@ -194,7 +194,7 @@ export default function AdminChatIndex({ sessions, filters, auto_closed_count }:
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </>
                 )}
             </div>
         </AdminLayout>
