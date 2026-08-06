@@ -10,9 +10,9 @@ jobs:
     name: Deploy via SSH
     runs-on: ubuntu-latest
     env:
-      SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
-      SSH_USERNAME: ${{ secrets.SSH_USERNAME || vars.SSH_USERNAME }}
-      SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT }}
+      SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || '187.124.27.250' }}
+      SSH_USERNAME: ${{ secrets.SSH_USERNAME || vars.SSH_USERNAME || 'root' }}
+      SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || '22' }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
