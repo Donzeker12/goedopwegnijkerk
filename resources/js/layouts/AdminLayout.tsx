@@ -567,7 +567,7 @@ export default function AdminLayout({ children, title }: Props) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex">
+        <div className="min-h-screen bg-gray-100 flex print:block print:min-h-0">
             <AnimatePresence>
                 {menuOpen && (
                     <motion.button
@@ -618,7 +618,7 @@ export default function AdminLayout({ children, title }: Props) {
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 lg:ml-72 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0 print:ml-0 print:pt-0">
+            <div className="flex-1 lg:ml-72 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0 print:ml-0 print:mt-0 print:pt-0 print:block print:min-h-0">
                 {title && (
                     <div className="print:hidden bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
                         <h1 className="text-xl font-bold text-gray-900">{title}</h1>

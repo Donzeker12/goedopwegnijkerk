@@ -199,6 +199,7 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                     .no-print { display: none !important; }
                     body { background: white !important; }
                     .print-container {
+                        display: block !important;
                         width: 100% !important;
                         max-width: none !important;
                         margin: 0 !important;

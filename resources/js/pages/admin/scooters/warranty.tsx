@@ -143,6 +143,7 @@ export default function ScooterWarranty({ scooter, document, placed_parts }: Pro
                     .no-print { display: none !important; }
                     body { background: white !important; }
                     .print-container {
+                        display: block !important;
                         width: 100% !important;
                         max-width: none !important;
                         min-height: auto !important;
