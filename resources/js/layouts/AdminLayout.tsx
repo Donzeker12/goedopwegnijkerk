@@ -46,6 +46,14 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        key: 'maintenance',
+        label: 'Onderhoud',
+        icon: '🔧',
+        items: [
+            { href: '/admin/onderhoud/scooter', label: 'Scooter', icon: '🛵' },
+        ],
+    },
+    {
         key: 'categories',
         label: 'Categorieën',
         icon: '🧩',

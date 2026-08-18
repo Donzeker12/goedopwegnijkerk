@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\HomepageReviewsController;
 use App\Http\Controllers\Admin\GoogleImageController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\MaintenanceController as AdminMaintenanceController;
 use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\PushSubscriptionController;
 use App\Http\Controllers\Admin\PwaController;
@@ -219,6 +220,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/voorraad/geplaatst', [InventoryController::class, 'installed'])->name('inventory.installed');
     Route::patch('/voorraad/onderdelen/{part}', [InventoryController::class, 'updatePart'])->name('inventory.parts.update');
     Route::delete('/voorraad/onderdelen/{part}', [InventoryController::class, 'destroyPart'])->name('inventory.parts.destroy');
+
+    // Maintenance (onderhoud)
+    Route::get('/onderhoud/scooter', [AdminMaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::get('/onderhoud/scooter/nieuw', [AdminMaintenanceController::class, 'create'])->name('maintenance.create');
+    Route::post('/onderhoud/scooter', [AdminMaintenanceController::class, 'store'])->name('maintenance.store');
+    Route::get('/onderhoud/scooter/{maintenance}/bewerken', [AdminMaintenanceController::class, 'edit'])->name('maintenance.edit');
+    Route::put('/onderhoud/scooter/{maintenance}', [AdminMaintenanceController::class, 'update'])->name('maintenance.update');
+    Route::delete('/onderhoud/scooter/{maintenance}', [AdminMaintenanceController::class, 'destroy'])->name('maintenance.destroy');
 
     // Page content editor
     Route::get('/paginas/{slug}', [PageContentController::class, 'edit'])->name('pages.edit');
