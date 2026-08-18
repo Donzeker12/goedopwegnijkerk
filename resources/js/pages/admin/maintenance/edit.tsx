@@ -13,6 +13,7 @@ type PartLine = {
     description: string;
     quantity: number | string;
     unit_price: number | string;
+    cost_price: number | string;
 };
 
 interface Props {
@@ -46,9 +47,11 @@ interface Props {
         vat_rate: number;
         notes: string;
         parts_total: number;
+        parts_cost: number;
         subtotal: number;
         vat_amount: number;
         total_amount: number;
+        profit: number;
     };
 }
 
@@ -120,7 +123,7 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
     }
 
     function addPartLine() {
-        form.setData('parts', [...form.data.parts, { description: '', quantity: 1, unit_price: 0 }]);
+        form.setData('parts', [...form.data.parts, { description: '', quantity: 1, unit_price: 0, cost_price: 0 }]);
     }
 
     function addPartFromStock(rawId: string) {
@@ -132,7 +135,7 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
 
         const description = [tpl.name, tpl.part_brand].filter(Boolean).join(' - ');
 
-        form.setData('parts', [...form.data.parts, { description, quantity: 1, unit_price: tpl.cost }]);
+        form.setData('parts', [...form.data.parts, { description, quantity: 1, unit_price: tpl.cost, cost_price: tpl.cost }]);
     }
 
     function removePartLine(index: number) {
@@ -180,11 +183,13 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
     }
 
     const partsTotal = form.data.parts.reduce((sum, line) => sum + toNumber(line.quantity) * toNumber(line.unit_price), 0);
+    const partsCost = form.data.parts.reduce((sum, line) => sum + toNumber(line.quantity) * toNumber(line.cost_price), 0);
     const laborCost = toNumber(form.data.labor_cost);
     const vatRate = toNumber(form.data.vat_rate);
     const subtotal = partsTotal + laborCost;
     const vatAmount = subtotal * (vatRate / 100);
     const totalAmount = subtotal + vatAmount;
+    const profit = subtotal - partsCost;
 
     const groupedChecklist = form.data.checklist.reduce<Record<string, ChecklistLine[]>>((carry, line) => {
         const key = line.category?.trim() || 'Overig';
@@ -476,7 +481,17 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                                 value={line.quantity}
                                 onChange={(e) => updatePartLine(index, 'quantity', e.target.value)}
                                 placeholder="Aantal"
-                                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm sm:w-24"
+                                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm sm:w-20"
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={line.cost_price}
+                                onChange={(e) => updatePartLine(index, 'cost_price', e.target.value)}
+                                placeholder="Kostprijs"
+                                title="Wat jij hebt betaald voor dit onderdeel (niet zichtbaar op factuur)"
+                                className="w-full rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 text-sm sm:w-28"
                             />
                             <input
                                 type="number"
@@ -484,8 +499,8 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                                 step="0.01"
                                 value={line.unit_price}
                                 onChange={(e) => updatePartLine(index, 'unit_price', e.target.value)}
-                                placeholder="Prijs per stuk"
-                                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm sm:w-32"
+                                placeholder="Verkoopprijs"
+                                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm sm:w-28"
                             />
                             <button
                                 type="button"
@@ -497,6 +512,11 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                         </div>
                     ))}
                     {form.data.parts.length === 0 && <p className="text-sm text-gray-500">Geen onderdelen toegevoegd.</p>}
+                    {form.data.parts.length > 0 && (
+                        <p className="text-xs text-gray-500">
+                            <span className="inline-block rounded border border-amber-300 bg-amber-50 px-1 text-amber-700">Kostprijs</span> = wat jij betaalt (inkoop), <span className="font-medium">Verkoopprijs</span> = wat de klant betaalt. Het verschil is je winst.
+                        </p>
+                    )}
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -526,11 +546,13 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                 </div>
 
                 <div className="mt-4 space-y-1 rounded-xl bg-gray-50 p-4 text-sm">
-                    <div className="flex justify-between"><span className="text-gray-600">Onderdelen</span><span>{euro(partsTotal)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">Onderdelen (verkoop)</span><span>{euro(partsTotal)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">Onderdelen (kostprijs)</span><span className="text-red-600">-{euro(partsCost)}</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">Arbeidsloon</span><span>{euro(laborCost)}</span></div>
-                    <div className="flex justify-between font-semibold"><span>Subtotaal</span><span>{euro(subtotal)}</span></div>
+                    <div className="flex justify-between font-semibold"><span>Subtotaal (omzet)</span><span>{euro(subtotal)}</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">BTW ({vatRate}%)</span><span>{euro(vatAmount)}</span></div>
-                    <div className="flex justify-between border-t border-gray-200 pt-1 text-base font-bold text-gray-900"><span>Totaal</span><span>{euro(totalAmount)}</span></div>
+                    <div className="flex justify-between border-t border-gray-200 pt-1 text-base font-bold text-gray-900"><span>Totaal (te factureren)</span><span>{euro(totalAmount)}</span></div>
+                    <div className="flex justify-between border-t border-gray-200 pt-1 text-base font-bold text-emerald-700"><span>Winst (excl. BTW)</span><span>{euro(profit)}</span></div>
                 </div>
             </section>
 

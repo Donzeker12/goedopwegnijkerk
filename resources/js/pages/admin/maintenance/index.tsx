@@ -12,6 +12,8 @@ interface JobRow {
     license_plate: string | null;
     performed_at: string | null;
     total_amount: number;
+    parts_cost: number;
+    profit: number;
 }
 
 interface Summary {
@@ -20,6 +22,8 @@ interface Summary {
     in_progress: number;
     done: number;
     revenue_total: number;
+    costs_total: number;
+    profit_total: number;
 }
 
 interface Props {
@@ -63,7 +67,7 @@ export default function MaintenanceIndex({ jobs, summary }: Props) {
             <Head title="Onderhoud - Scooter" />
 
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 flex-1">
                     <div className="rounded-2xl border border-gray-200 bg-white p-4">
                         <div className="text-xs text-gray-500">Totaal</div>
                         <div className="text-2xl font-black text-gray-900 mt-1">{summary.total}</div>
@@ -79,6 +83,14 @@ export default function MaintenanceIndex({ jobs, summary }: Props) {
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                         <div className="text-xs text-emerald-700">Omzet totaal</div>
                         <div className="text-2xl font-black text-emerald-800 mt-1">{euro(summary.revenue_total)}</div>
+                    </div>
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+                        <div className="text-xs text-red-700">Onderdelenkosten</div>
+                        <div className="text-2xl font-black text-red-800 mt-1">{euro(summary.costs_total)}</div>
+                    </div>
+                    <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4">
+                        <div className="text-xs text-teal-700">Winst totaal</div>
+                        <div className="text-2xl font-black text-teal-800 mt-1">{euro(summary.profit_total)}</div>
                     </div>
                 </div>
             </div>
@@ -122,6 +134,10 @@ export default function MaintenanceIndex({ jobs, summary }: Props) {
                                         <span className="text-gray-500">{job.performed_at ?? '-'}</span>
                                         <span className="font-bold text-gray-900">{euro(job.total_amount)}</span>
                                     </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-gray-500">Onderdelenkosten: {euro(job.parts_cost)}</span>
+                                        <span className="font-semibold text-teal-700">Winst: {euro(job.profit)}</span>
+                                    </div>
                                     <div className="flex gap-2 pt-1">
                                         <Link
                                             href={`/admin/onderhoud/scooter/${job.id}/bewerken`}
@@ -152,6 +168,7 @@ export default function MaintenanceIndex({ jobs, summary }: Props) {
                                         <th className="text-left px-4 py-2 font-semibold">Datum</th>
                                         <th className="text-left px-4 py-2 font-semibold">Status</th>
                                         <th className="text-right px-4 py-2 font-semibold">Totaal</th>
+                                        <th className="text-right px-4 py-2 font-semibold">Winst</th>
                                         <th className="text-right px-4 py-2 font-semibold">Actie</th>
                                     </tr>
                                 </thead>
@@ -172,6 +189,7 @@ export default function MaintenanceIndex({ jobs, summary }: Props) {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-2 text-right font-semibold text-gray-900">{euro(job.total_amount)}</td>
+                                            <td className="px-4 py-2 text-right font-semibold text-teal-700">{euro(job.profit)}</td>
                                             <td className="px-4 py-2 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     <Link

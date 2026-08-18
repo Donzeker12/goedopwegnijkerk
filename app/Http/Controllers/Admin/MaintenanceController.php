@@ -93,6 +93,8 @@ class MaintenanceController extends Controller
                 'license_plate' => $job->license_plate,
                 'performed_at' => $job->performed_at?->format('Y-m-d'),
                 'total_amount' => $job->total_amount,
+                'parts_cost' => $job->parts_cost,
+                'profit' => $job->profit,
             ]);
 
         return Inertia::render('admin/maintenance/index', [
@@ -103,6 +105,8 @@ class MaintenanceController extends Controller
                 'in_progress' => $jobs->where('status', 'bezig')->count(),
                 'done' => $jobs->where('status', 'afgerond')->count(),
                 'revenue_total' => (float) $jobs->sum('total_amount'),
+                'costs_total' => (float) $jobs->sum('parts_cost'),
+                'profit_total' => (float) $jobs->sum('profit'),
             ],
         ]);
     }
@@ -192,14 +196,21 @@ class MaintenanceController extends Controller
                 'mileage' => $maintenance->mileage,
                 'performed_at' => $maintenance->performed_at?->format('Y-m-d') ?? now()->toDateString(),
                 'checklist' => $maintenance->checklist ?? [],
-                'parts' => $maintenance->parts ?? [],
+                'parts' => collect($maintenance->parts ?? [])->map(fn (array $line) => [
+                    'description' => (string) ($line['description'] ?? ''),
+                    'quantity' => $line['quantity'] ?? 1,
+                    'unit_price' => $line['unit_price'] ?? 0,
+                    'cost_price' => $line['cost_price'] ?? 0,
+                ])->values(),
                 'labor_cost' => (float) $maintenance->labor_cost,
                 'vat_rate' => (float) $maintenance->vat_rate,
                 'notes' => (string) $maintenance->notes,
                 'parts_total' => $maintenance->parts_total,
+                'parts_cost' => $maintenance->parts_cost,
                 'subtotal' => $maintenance->subtotal,
                 'vat_amount' => $maintenance->vat_amount,
                 'total_amount' => $maintenance->total_amount,
+                'profit' => $maintenance->profit,
             ],
         ]);
     }
@@ -233,6 +244,7 @@ class MaintenanceController extends Controller
             'parts.*.description' => ['required', 'string', 'max:190'],
             'parts.*.quantity' => ['required', 'numeric', 'min:0'],
             'parts.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'parts.*.cost_price' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $checklist = collect($validated['checklist'])
@@ -251,6 +263,7 @@ class MaintenanceController extends Controller
                 'description' => trim((string) $line['description']),
                 'quantity' => (float) $line['quantity'],
                 'unit_price' => (float) $line['unit_price'],
+                'cost_price' => (float) ($line['cost_price'] ?? 0),
             ])
             ->filter(fn (array $line) => $line['description'] !== '')
             ->values()
