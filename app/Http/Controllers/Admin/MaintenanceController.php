@@ -46,9 +46,26 @@ class MaintenanceController extends Controller
         ];
     }
 
+    private function repairChecklist(): array
+    {
+        return [
+            ['category' => 'Diagnose', 'label' => 'Klacht van klant genoteerd en herhaald/gecontroleerd'],
+            ['category' => 'Diagnose', 'label' => 'Foutcodes / storingslampjes uitgelezen'],
+            ['category' => 'Diagnose', 'label' => 'Oorzaak vastgesteld'],
+            ['category' => 'Reparatie', 'label' => 'Defecte onderdelen vervangen of hersteld'],
+            ['category' => 'Reparatie', 'label' => 'Bekabeling en aansluitingen gecontroleerd'],
+            ['category' => 'Afronding', 'label' => 'Proefrit uitgevoerd na reparatie'],
+            ['category' => 'Afronding', 'label' => 'Klacht verholpen en getest'],
+        ];
+    }
+
     private function defaultChecklistFor(string $type): array
     {
-        $lines = $type === 'grote_beurt' ? $this->largeServiceChecklist() : $this->smallServiceChecklist();
+        $lines = match ($type) {
+            'grote_beurt' => $this->largeServiceChecklist(),
+            'reparatie' => $this->repairChecklist(),
+            default => $this->smallServiceChecklist(),
+        };
 
         return array_map(fn (array $line) => [
             'category' => $line['category'],
@@ -102,7 +119,7 @@ class MaintenanceController extends Controller
         abort_unless($request->user()?->canManageScooters(), 403, 'Geen rechten om onderhoud te beheren.');
 
         $validated = $request->validate([
-            'service_type' => ['required', 'in:grote_beurt,kleine_beurt'],
+            'service_type' => ['required', 'in:grote_beurt,kleine_beurt,reparatie'],
             'customer_name' => ['required', 'string', 'max:190'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'customer_email' => ['nullable', 'email', 'max:190'],
@@ -112,6 +129,7 @@ class MaintenanceController extends Controller
             'license_plate' => ['nullable', 'string', 'max:20'],
             'mileage' => ['nullable', 'integer', 'min:0', 'max:500000'],
             'performed_at' => ['nullable', 'date'],
+            'complaint' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $job = MaintenanceJob::create([
@@ -162,6 +180,7 @@ class MaintenanceController extends Controller
                 'id' => $maintenance->id,
                 'invoice_number' => $maintenance->invoice_number,
                 'service_type' => $maintenance->service_type,
+                'complaint' => (string) $maintenance->complaint,
                 'status' => $maintenance->status,
                 'customer_name' => $maintenance->customer_name,
                 'customer_phone' => (string) $maintenance->customer_phone,
@@ -190,7 +209,7 @@ class MaintenanceController extends Controller
         abort_unless($request->user()?->canManageScooters(), 403, 'Geen rechten om onderhoud te beheren.');
 
         $validated = $request->validate([
-            'service_type' => ['required', 'in:grote_beurt,kleine_beurt'],
+            'service_type' => ['required', 'in:grote_beurt,kleine_beurt,reparatie'],
             'status' => ['required', 'in:open,bezig,afgerond'],
             'customer_name' => ['required', 'string', 'max:190'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
@@ -201,6 +220,7 @@ class MaintenanceController extends Controller
             'license_plate' => ['nullable', 'string', 'max:20'],
             'mileage' => ['nullable', 'integer', 'min:0', 'max:500000'],
             'performed_at' => ['nullable', 'date'],
+            'complaint' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'labor_cost' => ['required', 'numeric', 'min:0'],
             'vat_rate' => ['required', 'numeric', 'min:0', 'max:100'],
@@ -238,6 +258,7 @@ class MaintenanceController extends Controller
 
         $maintenance->update([
             'service_type' => $validated['service_type'],
+            'complaint' => $validated['complaint'] ?? null,
             'status' => $validated['status'],
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'] ?? null,

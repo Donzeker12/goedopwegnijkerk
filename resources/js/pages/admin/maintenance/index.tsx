@@ -4,7 +4,7 @@ import AdminLayout from '../../../layouts/AdminLayout';
 interface JobRow {
     id: number;
     invoice_number: string;
-    service_type: 'grote_beurt' | 'kleine_beurt';
+    service_type: 'grote_beurt' | 'kleine_beurt' | 'reparatie';
     status: 'open' | 'bezig' | 'afgerond';
     customer_name: string;
     scooter_brand: string | null;
@@ -30,6 +30,7 @@ interface Props {
 const serviceLabel: Record<JobRow['service_type'], string> = {
     grote_beurt: 'Grote beurt',
     kleine_beurt: 'Kleine beurt',
+    reparatie: 'Reparatie',
 };
 
 const statusLabel: Record<JobRow['status'], string> = {

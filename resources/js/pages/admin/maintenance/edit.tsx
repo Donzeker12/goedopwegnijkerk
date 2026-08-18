@@ -28,7 +28,8 @@ interface Props {
     job: {
         id: number;
         invoice_number: string;
-        service_type: 'grote_beurt' | 'kleine_beurt';
+        service_type: 'grote_beurt' | 'kleine_beurt' | 'reparatie';
+        complaint: string;
         status: 'open' | 'bezig' | 'afgerond';
         customer_name: string;
         customer_phone: string;
@@ -54,6 +55,7 @@ interface Props {
 const serviceLabel: Record<Props['job']['service_type'], string> = {
     grote_beurt: 'Grote beurt',
     kleine_beurt: 'Kleine beurt',
+    reparatie: 'Reparatie',
 };
 
 function euro(amount: number): string {
@@ -77,6 +79,7 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
 
     const form = useForm({
         service_type: job.service_type,
+        complaint: job.complaint,
         status: job.status,
         customer_name: job.customer_name,
         customer_phone: job.customer_phone,
@@ -248,7 +251,7 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                     <h2 className="mb-4 text-base font-bold text-gray-900">Opdracht &amp; klant</h2>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
-                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Type beurt</label>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Type opdracht</label>
                             <select
                                 value={form.data.service_type}
                                 onChange={(e) => form.setData('service_type', e.target.value as Props['job']['service_type'])}
@@ -256,6 +259,7 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                             >
                                 <option value="kleine_beurt">Kleine beurt</option>
                                 <option value="grote_beurt">Grote beurt</option>
+                                <option value="reparatie">Reparatie</option>
                             </select>
                         </div>
                         <div>
@@ -278,6 +282,17 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
                         </div>
+                        {form.data.service_type === 'reparatie' && (
+                            <div className="sm:col-span-2">
+                                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Klacht van klant</label>
+                                <textarea
+                                    value={form.data.complaint}
+                                    onChange={(e) => form.setData('complaint', e.target.value)}
+                                    placeholder="Bijv. scooter start niet meer, remt slecht, knippert..."
+                                    className="min-h-20 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                        )}
                         <div>
                             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Telefoon</label>
                             <input
@@ -549,9 +564,16 @@ export default function MaintenanceEdit({ job, product_templates }: Props) {
                         <div className="text-sm text-gray-900">{[form.data.scooter_brand, form.data.scooter_model].filter(Boolean).join(' ') || '-'}</div>
                         {form.data.license_plate && <div className="text-sm text-gray-600">Kenteken: {form.data.license_plate}</div>}
                         {form.data.mileage && <div className="text-sm text-gray-600">Km-stand: {form.data.mileage}</div>}
-                        <div className="text-sm text-gray-600">Type onderhoud: {serviceLabel[form.data.service_type]}</div>
+                        <div className="text-sm text-gray-600">Type opdracht: {serviceLabel[form.data.service_type]}</div>
                     </div>
                 </div>
+
+                {form.data.service_type === 'reparatie' && form.data.complaint && (
+                    <div className="mb-6">
+                        <div className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">Klacht van klant</div>
+                        <p className="whitespace-pre-line text-sm text-gray-700">{form.data.complaint}</p>
+                    </div>
+                )}
 
                 <div className="mb-6">
                     <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Uitgevoerde werkzaamheden</div>

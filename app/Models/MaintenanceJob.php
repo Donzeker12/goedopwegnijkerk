@@ -9,6 +9,7 @@ class MaintenanceJob extends Model
     protected $fillable = [
         'invoice_number',
         'service_type',
+        'complaint',
         'status',
         'customer_name',
         'customer_phone',
