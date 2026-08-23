@@ -23,7 +23,7 @@ jobs:
           [ -n "$SSH_PRIVATE_KEY" ] || { echo "::error::Missing SSH private key. Set secret SSH_PRIVATE_KEY."; exit 1; }
 
       - name: Verbinding maken met server en deployen
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USERNAME }}
